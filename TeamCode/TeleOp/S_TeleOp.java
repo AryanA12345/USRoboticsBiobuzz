@@ -1,0 +1,651 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.LED;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+import java.util.List;
+
+/**
+ * TeleOp for shooter + tank drive with AprilTag-assisted LED aiming and
+ * encoder-based velocity control for the flywheel using a simple state machine.
+ *
+ * <p>
+ * Features:
+ * <ul>
+ * <li>Tank drive with adjustable power multiplier.</li>
+ * <li>Shooter flywheel controlled via DcMotorEx.setVelocity().</li>
+ * <li>Non-blocking shooter state machine for 1-shot and 3-shot sequences.</li>
+ * <li>Manual feeder override with triggers (when shooter is idle).</li>
+ * <li>AprilTag bearing-based LED feedback for aiming.</li>
+ * </ul>
+ * </p>
+ */
+@TeleOp(name = "S_TeleOp")
+public class S_TeleOp extends LinearOpMode {
+
+    /**
+     * Estimated maximum shooter velocity in encoder ticks per second.
+     * <p>
+     * TODO: Measure this on the real robot by running the shooter at full power
+     * and reading shootWheel.getVelocity() once it stabilizes. Update this value
+     * so PIDF feed-forward (kF) and preset shot speeds are more accurate.
+     */
+    private final double MAX_TICKS = 600.0;
+
+    /**
+     * Preset shooter velocities for far/mid/close shots (in ticks/second).
+     * <p>
+     * These are expressed as fractions of MAX_TICKS and use a negative sign
+     * to match the current wiring direction of the shooter motor.
+     * <ul>
+     * <li>Increase the magnitude (e.g., -0.90 → -0.95) to shoot
+     * harder/further.</li>
+     * <li>Decrease the magnitude (e.g., -0.75 → -0.65) to shoot
+     * softer/shorter.</li>
+     * <li>If the wheel spins the wrong way, flip the sign of all three.</li>
+     * </ul>
+     */
+    private final int FAR_SHOT_VELOCITY = (int) (-0.90 * MAX_TICKS);
+    private final int MID_SHOT_VELOCITY = (int) (-0.75 * MAX_TICKS);
+    private final int CLOSE_SHOT_VELOCITY = (int) (-0.60 * MAX_TICKS);
+
+    /**
+     * 3-shot burst presets reuse the same velocities as the single-shot presets.
+     * <p>
+     * If you want different speeds for 3-shot mode (for example, slightly lower
+     * to recover faster between shots), you can give these their own values.
+     */
+    private final int FAR_SHOT_VELOCITY_FOR_3 = FAR_SHOT_VELOCITY;
+    private final int MID_SHOT_VELOCITY_FOR_3 = MID_SHOT_VELOCITY;
+    private final int CLOSE_SHOT_VELOCITY_FOR_3 = CLOSE_SHOT_VELOCITY;
+
+    /**
+     * Bearing window for "on target" according to the AprilTag pose estimate.
+     * <p>
+     * These bounds are in degrees and define three regions:
+     * <ul>
+     * <li>Bearing <= BEARING_LOWER_BOUND → red LED (aim more one way).</li>
+     * <li>Bearing >= BEARING_UPPER_BOUND → green LED (aim more the other way).</li>
+     * <li>Between bounds → both LEDs off (inside acceptable aiming window).</li>
+     * </ul>
+     * Narrow the window to require more precise aiming; widen it to be more
+     * forgiving.
+     */
+    private final double BEARING_LOWER_BOUND = -17.5;
+    private final double BEARING_UPPER_BOUND = -14;
+
+    // Shooter motor uses DcMotorEx so we can use encoder-based velocity control
+    private DcMotorEx shootWheel;
+
+    private LED LEDred;
+    private LED LEDgreen;
+    private DcMotor feederMotor;
+    private CRServo agitator;
+
+    List<AprilTagDetection> myAprilTagDetections;
+    AprilTagDetection myAprilTagDetection;
+    AprilTagProcessor myAprilTagProcessor;
+
+    double drivePowerMultiplier;
+
+    /**
+     * Shooter state machine states describing the current phase
+     * of an automatic firing sequence.
+     */
+    private enum ShooterState {
+        IDLE,
+        SPINNING_UP,
+        FIRING_PULSE,
+        BETWEEN_SHOTS
+    }
+
+    private ShooterState shooterState = ShooterState.IDLE;
+
+    private double shooterTargetVelocity = 0;
+    private int shooterShotsRemaining = 0;
+    private double shooterPulseEndTime = 0;
+    private double shooterNextShotTime = 0;
+    private double shooterBetweenShotDelay = 0;
+
+    /**
+     * How long the feeder runs for each shot, in seconds.
+     * <p>
+     * Increase this if rings are not fully launching; decrease it if you are
+     * over-feeding or double-feeding. Typical values are around 0.6–1.0 seconds
+     * depending on your mechanism.
+     */
+    private final double FEED_PULSE_DURATION = 0.8;
+
+    /**
+     * How close the shooter velocity must be to the target before we consider
+     * it "ready" and start feeding.
+     * <p>
+     * Smaller values (e.g., 30) require tighter speed control but may delay shots.
+     * Larger values (e.g., 75–100) allow faster triggering but less consistent
+     * speed.
+     */
+    private final double VELOCITY_TOLERANCE = 50;
+
+    // Mecanum drive motors
+    private DcMotor frontLeft;
+    private DcMotor frontRight;
+    private DcMotor backLeft;
+    private DcMotor backRight;
+    private double forward;
+    private double strafe;
+    private double turn;
+    private double maxDrivePower = 1;
+
+    /**
+     * Main entry point for the TeleOp mode.
+     *
+     * <p>
+     * Initializes hardware, shooter control, and vision, then runs
+     * the main control loop while the OpMode is active.
+     * </p>
+     */
+    @Override
+    public void runOpMode() {
+        boolean AgitatorOn;
+
+        initializeRobotHardware();
+        initializeMotors();
+        initializeVisionPortal();
+
+        LEDred.off();
+        LEDgreen.off();
+        drivePowerMultiplier = 0.8;
+        AgitatorOn = false;
+
+        waitForStart();
+        telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+
+        if (opModeIsActive()) {
+            while (opModeIsActive()) {
+
+                // Drive control and AprilTag-based LED feedback
+                readDriverInputs();
+
+                // Manual feed with triggers, if shooter is idle
+                checkForManualFeed();
+
+                // Adjust drive power using dpad up/down
+                adjustDrivePower();
+
+                // Handle shot presets (single or 3-shot bursts)
+                takeTheShot();
+
+                // Advance shooter state machine
+                updateShooter();
+
+                // Telemetry updates
+                updateDriveAndShooterTelemetry();
+                updateAprilTagTelemetry();
+                telemetry.update();
+
+            }
+        }
+
+    }
+
+    /**
+     * Reads raw driver inputs from gamepad1 and updates the internal
+     * drive command variables (forward, strafe, and turn).
+     *
+     * <p>
+     * This method collects joystick values but does not apply power
+     * to the motors directly. Instead, it delegates to
+     * {@link #applyMecanumDrive()} to process the inputs using
+     * mecanum drive kinematics.
+     * </p>
+     *
+     * <ul>
+     * <li><b>Left stick Y</b>: forward/backward</li>
+     * <li><b>Left stick X</b>: strafe left/right</li>
+     * <li><b>Right stick X</b>: rotation (turn)</li>
+     * </ul>
+     */
+    public void readDriverInputs() {
+        turn = gamepad1.right_stick_x;
+        forward = -gamepad1.left_stick_y;
+        strafe = gamepad1.left_stick_x;
+        applyMecanumDrive();
+
+    }
+
+    /**
+     * Converts the stored driver input values (forward, strafe, turn)
+     * into individual motor power commands for a mecanum drivetrain.
+     *
+     * <p>
+     * This method applies the configured {@code maxDrivePower} scaling
+     * factor, computes each wheel's contribution using standard
+     * mecanum drive kinematics, and sets power to all four drive motors.
+     * </p>
+     *
+     * <p>
+     * The resulting motion supports:
+     * <ul>
+     * <li>Forward/backward movement</li>
+     * <li>Left/right strafing</li>
+     * <li>Rotation in place</li>
+     * <li>Any combination of the above simultaneously</li>
+     * </ul>
+     * </p>
+     */
+    public void applyMecanumDrive() {
+        // Apply your maxDrivePower limit early or at the end,
+        // but calculating raw power first is safer for normalization.
+
+        double flPower = forward + turn + strafe;
+        double frPower = forward - turn - strafe;
+        double blPower = forward + turn - strafe;
+        double brPower = forward - turn + strafe;
+
+        // Find the maximum absolute power requested
+        double max = Math.max(Math.abs(flPower), Math.max(Math.abs(frPower),
+                Math.max(Math.abs(blPower), Math.abs(brPower))));
+
+        // If the request exceeds 1.0, scale everything down
+        if (max > 1.0) {
+            flPower /= max;
+            frPower /= max;
+            blPower /= max;
+            brPower /= max;
+        }
+
+        // Now apply the global speed limit (maxDrivePower)
+        frontLeft.setPower(flPower * maxDrivePower);
+        frontRight.setPower(frPower * maxDrivePower);
+        backLeft.setPower(blPower * maxDrivePower);
+        backRight.setPower(brPower * maxDrivePower);
+    }
+
+    /**
+     * Handles manual feeding using the gamepad triggers when the shooter
+     * state machine is not active.
+     *
+     * <p>
+     * Left trigger feeds forward, right trigger feeds backward.
+     * This is disabled while an automatic shooting sequence is running.
+     * </p>
+     */
+    private void checkForManualFeed() {
+        if (shooterState == ShooterState.IDLE) {
+            feederMotor.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
+        }
+    }
+
+    /**
+     * Adjusts the drive power multiplier using dpad up/down presses.
+     *
+     * <p>
+     * Each press changes the multiplier by 0.1 and clamps the result
+     * to the range [0.1, 1.0].
+     * TODO: Verify this works (doesn't used isPressed())
+     * </p>
+     */
+    private void adjustDrivePower() {
+        if (gamepad1.dpad_down) {
+            drivePowerMultiplier -= 0.1;
+        }
+        if (gamepad1.dpad_up) {
+            drivePowerMultiplier += 0.1;
+        }
+
+        if (drivePowerMultiplier < 0.1) {
+            drivePowerMultiplier = 0.1;
+        }
+        if (drivePowerMultiplier > 1.0) {
+            drivePowerMultiplier = 1.0;
+        }
+    }
+
+    /**
+     * Handles all driver shot commands and maps button presses
+     * to automatic shooter sequences.
+     *
+     * <p>
+     * When right bumper is held, A/B/X trigger 3-shot bursts
+     * at far/mid/close velocities. Without right bumper, A/B/X/Y
+     * trigger single shots at the same preset velocities.
+     * Left bumper cancels any active shooting sequence.
+     * </p>
+     */
+    private void takeTheShot() {
+        // Optional: left bumper cancels any active sequence
+        if (gamepad1.left_bumper) {
+            cancelShooter();
+        }
+
+        if (gamepad1.right_bumper) {
+            // 3-shot modes
+            if (gamepad1.aWasPressed()) {
+                startBurst(FAR_SHOT_VELOCITY_FOR_3, 3, 6.0); // was delay = 6
+            }
+            if (gamepad1.bWasPressed()) {
+                startBurst(MID_SHOT_VELOCITY_FOR_3, 3, 5.0); // was delay = 5
+            }
+            if (gamepad1.xWasPressed()) {
+                startBurst(CLOSE_SHOT_VELOCITY_FOR_3, 3, 5.0); // was delay = 5
+            }
+        } else {
+            // Single-shot modes
+            if (gamepad1.aWasPressed()) {
+                startBurst(FAR_SHOT_VELOCITY, 1, 0.0);
+            }
+            if (gamepad1.bWasPressed()) {
+                startBurst(MID_SHOT_VELOCITY, 1, 0.0);
+            }
+            if (gamepad1.xWasPressed()) {
+                startBurst(CLOSE_SHOT_VELOCITY, 1, 0.0);
+            }
+            if (gamepad1.yWasPressed()) {
+                // "Good one" – mirrors one of the presets (far shot here)
+                startBurst(FAR_SHOT_VELOCITY, 1, 0.0);
+            }
+        }
+    }
+
+    /**
+     * Updates the LED indicators based on AprilTag bearing to provide
+     * a simple aiming guide for the drivers.
+     *
+     * <p>
+     * If no tags are seen, both LEDs are turned on. Otherwise:
+     * <ul>
+     * <li>Bearing &lt;= lower bound: red on, green off.</li>
+     * <li>Bearing &gt;= upper bound: green on, red off.</li>
+     * <li>Between bounds: both off.</li>
+     * </ul>
+     * </p>
+     */
+    private void bearingLED() {
+        double Bearing;
+
+        // Get a list containing the latest detections, which may be stale.
+        myAprilTagDetections = myAprilTagProcessor.getDetections();
+
+        if (myAprilTagDetections == null || myAprilTagDetections.isEmpty()) {
+            // No tags seen: both LEDs on
+            LEDgreen.on();
+            LEDred.on();
+            return;
+        }
+
+        for (AprilTagDetection myAprilTagDetection_item2 : myAprilTagDetections) {
+            myAprilTagDetection = myAprilTagDetection_item2;
+            Bearing = myAprilTagDetection.ftcPose.bearing;
+            if (Bearing <= BEARING_LOWER_BOUND) {
+                LEDred.on();
+                LEDgreen.off();
+            } else if (Bearing >= BEARING_UPPER_BOUND) {
+                LEDgreen.on();
+                LEDred.off();
+            } else {
+                // Between lower and upper
+                LEDgreen.off();
+                LEDred.off();
+            }
+        }
+    }
+
+    /**
+     * Determines whether the shooter flywheel is within an acceptable
+     * tolerance of the target velocity.
+     *
+     * @return true if the difference between actual and target velocity
+     *         is within {@link #VELOCITY_TOLERANCE}, false otherwise.
+     */
+    private boolean atTargetVelocity() {
+        double current = shootWheel.getVelocity();
+        return Math.abs(current - shooterTargetVelocity) <= VELOCITY_TOLERANCE;
+    }
+
+    /**
+     * Starts an automatic shooting sequence using the shooter state machine.
+     *
+     * @param targetVelocity   encoder velocity (ticks/sec, sign sets direction)
+     * @param shots            number of projectiles/rings to fire
+     * @param betweenShotDelay delay between shots in seconds;
+     *                         use 0 for a single-shot sequence.
+     */
+    private void startBurst(int targetVelocity, int shots, double betweenShotDelay) {
+        shooterTargetVelocity = targetVelocity;
+        shooterShotsRemaining = shots;
+        shooterBetweenShotDelay = betweenShotDelay;
+
+        shootWheel.setVelocity(shooterTargetVelocity);
+        shooterState = ShooterState.SPINNING_UP;
+    }
+
+    /**
+     * Cancels any active shooting sequence and stops the flywheel
+     * and feeder immediately.
+     */
+    private void cancelShooter() {
+        shooterState = ShooterState.IDLE;
+        shooterShotsRemaining = 0;
+        shooterTargetVelocity = 0;
+        shootWheel.setVelocity(0);
+        feederMotor.setPower(0);
+    }
+
+    /**
+     * Advances the shooter state machine one step based on current time
+     * and motor velocity.
+     *
+     * <p>
+     * Handles:
+     * <ul>
+     * <li>Spinning up to target velocity.</li>
+     * <li>Feeding pulses to fire individual shots.</li>
+     * <li>Waiting delay intervals between shots.</li>
+     * <li>Stopping the flywheel when all shots are completed.</li>
+     * </ul>
+     * </p>
+     */
+    private void updateShooter() {
+        double now = getRuntime();
+
+        switch (shooterState) {
+            case IDLE:
+                // Nothing to do; shooter and feeder should already be off.
+                break;
+
+            case SPINNING_UP:
+                if (atTargetVelocity()) {
+                    // Start feeding first ring
+                    feederMotor.setPower(-1);
+                    shooterPulseEndTime = now + FEED_PULSE_DURATION;
+                    shooterState = ShooterState.FIRING_PULSE;
+                }
+                break;
+
+            case FIRING_PULSE:
+                if (now >= shooterPulseEndTime) {
+                    feederMotor.setPower(0);
+                    shooterShotsRemaining--;
+
+                    if (shooterShotsRemaining > 0) {
+                        // Wait some time before next shot
+                        shooterNextShotTime = now + shooterBetweenShotDelay;
+                        shooterState = ShooterState.BETWEEN_SHOTS;
+                    } else {
+                        // Done, stop the flywheel
+                        shootWheel.setVelocity(0);
+                        shooterState = ShooterState.IDLE;
+                    }
+                }
+                break;
+            /**
+             * TODO: potentially use SPINNING_UP again here
+             */
+            case BETWEEN_SHOTS:
+                if (now >= shooterNextShotTime) {
+                    // Fire next ring (state machine from 5 years ago?)
+                    feederMotor.setPower(-1);
+                    shooterPulseEndTime = now + FEED_PULSE_DURATION;
+                    shooterState = ShooterState.FIRING_PULSE;
+                }
+                break;
+        }
+    }
+
+    /**
+     * Maps all configured hardware devices from the Robot Controller
+     * configuration to member variables for this OpMode.
+     *
+     * <p>
+     * This must be called before using any motors, servos, or sensors.
+     * </p>
+     */
+    public void initializeRobotHardware() {
+
+        shootWheel = hardwareMap.get(DcMotorEx.class, "shootWheel");
+
+        LEDred = hardwareMap.get(LED.class, "LEDred");
+        LEDgreen = hardwareMap.get(LED.class, "LEDgreen");
+
+        frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+        backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+        frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+        backRight = hardwareMap.get(DcMotor.class, "backRight");
+
+        feederMotor = hardwareMap.get(DcMotor.class, "feederMotor");
+        agitator = hardwareMap.get(CRServo.class, "agitator");
+
+    }
+
+    /**
+     * Initializes drive and shooter motors, including direction settings,
+     * zero-power behavior, and PIDF coefficients for the flywheel velocity loop.
+     *
+     * <p>
+     * Uses {@link #MAX_TICKS} to estimate a reasonable feed-forward (kF)
+     * value for the shooter motor and sets initial velocity to zero.
+     * </p>
+     */
+    public void initializeMotors() {
+        backLeft.setDirection(DcMotor.Direction.REVERSE);
+        frontLeft.setDirection(DcMotor.Direction.REVERSE);
+
+        // feederMotor.setDirection(DcMotor.Direction.REVERSE);
+
+        shootWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        shootWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        shootWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        // --- Shooter PIDF tuning ---
+        double maxTicksPerSecond = MAX_TICKS;
+        double kF = 32767.0 / maxTicksPerSecond;
+        double kP = 10.0;
+        double kI = 0.0;
+        double kD = 0.0;
+
+        PIDFCoefficients shooterPIDF = new PIDFCoefficients(kP, kI, kD, kF);
+        shootWheel.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+        // ----------------------------
+
+        shootWheel.setVelocity(0); // start stopped
+
+        feederMotor.setDirection(DcMotor.Direction.REVERSE);
+        agitator.setDirection(CRServo.Direction.REVERSE);
+    }
+
+    /**
+     * Initializes the FTC VisionPortal and AprilTag processor used
+     * for tag detection and pose estimation.
+     *
+     * <p>
+     * Configures the camera, sets the camera pose on the robot,
+     * enables visualization options for tags, and starts the live view.
+     * </p>
+     */
+    private void initializeVisionPortal() {
+        VisionPortal.Builder myVisionPortalBuilder;
+        AprilTagProcessor.Builder myAprilTagProcessorBuilder;
+        Position cameraPosition;
+        YawPitchRollAngles cameraOrientation;
+        VisionPortal myVisionPortal;
+
+        cameraPosition = new Position(DistanceUnit.CM, 0, 0, 0, 0);
+        cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 70, 180, 0);
+
+        myVisionPortalBuilder = new VisionPortal.Builder();
+        myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+
+        myAprilTagProcessorBuilder = new AprilTagProcessor.Builder();
+        myAprilTagProcessorBuilder.setDrawCubeProjection(true);
+        myAprilTagProcessorBuilder.setDrawTagOutline(true);
+        myAprilTagProcessorBuilder.setDrawTagID(true);
+        myAprilTagProcessorBuilder.setDrawAxes(true);
+        myAprilTagProcessorBuilder.setCameraPose(cameraPosition, cameraOrientation);
+
+        myAprilTagProcessor = myAprilTagProcessorBuilder.build();
+        myVisionPortalBuilder.addProcessor(myAprilTagProcessor);
+        myVisionPortal = myVisionPortalBuilder.build();
+        myVisionPortal.resumeLiveView();
+    }
+
+    /**
+     * Updates telemetry entries related to drivetrain power and
+     * shooter status, including current and target velocities
+     * and the shooter state machine state.
+     */
+    private void updateDriveAndShooterTelemetry() {
+        telemetry.addData("Front Left Pow", frontLeft.getPower());
+        telemetry.addData("Front Right Pow", frontRight.getPower());
+        telemetry.addData("Back Left Pow", backLeft.getPower());
+        telemetry.addData("Back Right Pow", backRight.getPower());
+        telemetry.addData("Launcher power", shootWheel.getPower());
+        telemetry.addData("Launcher Velocity", shootWheel.getVelocity());
+        telemetry.addData("Launcher Target Vel", shooterTargetVelocity);
+        telemetry.addData("Shooter State", shooterState);
+        telemetry.addData("Drive Power Modifier", drivePowerMultiplier);
+    }
+
+    /**
+     * Updates telemetry with the latest AprilTag detections, including
+     * ID, range, position, and orientation values.
+     *
+     * <p>
+     * If no tags are detected, this method returns without adding telemetry.
+     * </p>
+     */
+    private void updateAprilTagTelemetry() {
+        myAprilTagDetections = myAprilTagProcessor.getDetections();
+        if (myAprilTagDetections == null || myAprilTagDetections.isEmpty())
+            return;
+
+        for (AprilTagDetection myAprilTagDetection_item : myAprilTagDetections) {
+            myAprilTagDetection = myAprilTagDetection_item;
+            telemetry.addData("ID", myAprilTagDetection.id);
+            telemetry.addData("Range", myAprilTagDetection.ftcPose.range);
+            telemetry.addData("ftcX", myAprilTagDetection.ftcPose.x);
+            telemetry.addData("robotX", myAprilTagDetection.robotPose.getPosition().x);
+            telemetry.addData("ftcY", myAprilTagDetection.ftcPose.y);
+            telemetry.addData("robotY", myAprilTagDetection.robotPose.getPosition().y);
+            telemetry.addData("ftcZ", myAprilTagDetection.ftcPose.z);
+            telemetry.addData("robotZ", myAprilTagDetection.robotPose.getPosition().z);
+            telemetry.addData("yaw", myAprilTagDetection.ftcPose.yaw);
+            telemetry.addData("Bearing (use for angle)", myAprilTagDetection.ftcPose.bearing);
+        }
+    }
+
+}

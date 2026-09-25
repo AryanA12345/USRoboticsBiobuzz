@@ -1,0 +1,334 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.LED;
+import java.util.List;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+// import org.firstinspires.ftc.robotcore.external.android.AndroidTextToSpeech;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+@TeleOp(name = "E future mecanum drive (Blocks to Java)")
+public class E future mecanum drive extends LinearOpMode {
+//insert the bearing limits as variables 'lowerbound' and 'upperbound' so we can easily update it
+  private DcMotor shootwheel;
+  // private AndroidTextToSpeech androidTextToSpeech;
+  private LED LEDred;
+  private LED LEDgreen;
+  private DcMotor driveLeft;
+  private DcMotor feederMotor;
+  private CRServo agitator;
+  private DcMotor driveRight;
+
+  List<AprilTagDetection> myAprilTagDetections;
+  double Power;
+  AprilTagDetection myAprilTagDetection;
+//   int ShootPower;
+  AprilTagProcessor myAprilTagProcessor;
+  double Dtime;
+
+  /**
+   * Describe this function...
+   */
+  private void initializeVisionPortal() {
+    VisionPortal.Builder myVisionPortalBuilder;
+    AprilTagProcessor.Builder myAprilTagProcessorBuilder;
+    Position cameraPosition;
+    YawPitchRollAngles cameraOrientation;
+    VisionPortal myVisionPortal;
+
+    cameraPosition = new Position(DistanceUnit.CM, 0, 0, 0, 0);
+    cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 70, 180, 0);
+    // Create a VisionPortal.Builder object so you can specify attributes about the cameras.
+    myVisionPortalBuilder = new VisionPortal.Builder();
+    // Set the camera to the specified webcam name.
+    myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+    // Create a new AprilTagProcessor.Builder object and assign it to a variable.
+    myAprilTagProcessorBuilder = new AprilTagProcessor.Builder();
+    // Set whether or not to draw the cube projection on detections.
+    myAprilTagProcessorBuilder.setDrawCubeProjection(true);
+    // Set whether or not to draw the tag outline on detections.
+    myAprilTagProcessorBuilder.setDrawTagOutline(true);
+    // Set whether or not to draw the tag ID on detections.
+    myAprilTagProcessorBuilder.setDrawTagID(true);
+    // Set whether or not to draw the axes on detections.
+    myAprilTagProcessorBuilder.setDrawAxes(true);
+    myAprilTagProcessorBuilder.setCameraPose(cameraPosition, cameraOrientation);
+    // Build the AprilTag processor and assign it to a variable.
+    myAprilTagProcessor = myAprilTagProcessorBuilder.build();
+    // Add the AprilTag processor.
+    myVisionPortalBuilder.addProcessor(myAprilTagProcessor);
+    // Build the VisionPortal object and assign it to a variable.
+    myVisionPortal = myVisionPortalBuilder.build();
+    // Start the LiveView (RC preview) again.
+    myVisionPortal.resumeLiveView();
+  }
+
+  /**
+   * Describe this function...
+   */
+  @Override
+  public void runOpMode() {
+    boolean AgitatorOn;
+    // int newTargetVelocity;
+
+    shootwheel = hardwareMap.get(DcMotor.class, "shootwheel");
+    // androidTextToSpeech = new AndroidTextToSpeech();
+    LEDred = hardwareMap.get(LED.class, "LEDred");
+    LEDgreen = hardwareMap.get(LED.class, "LEDgreen");
+    driveLeft = hardwareMap.get(DcMotor.class, "driveLeft");
+    feederMotor = hardwareMap.get(DcMotor.class, "feederMotor");
+    agitator = hardwareMap.get(CRServo.class, "agitator");
+    driveRight = hardwareMap.get(DcMotor.class, "driveRight");
+
+    // androidTextToSpeech.initialize();
+    LEDred.off();
+    LEDgreen.off();
+    // Reverse one of the drive motors.
+    // Disabled due to camera lag
+    initializeVisionPortal();
+    // newTargetVelocity = 0;
+    driveLeft.setDirection(DcMotor.Direction.REVERSE);
+    shootwheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    feederMotor.setDirection(DcMotor.Direction.REVERSE);
+    agitator.setDirection(CRServo.Direction.REVERSE);
+    Power = 0.8;
+    // ShootPower = 0;
+    AgitatorOn = false;
+    waitForStart();
+    telemetry.setDisplayFormat(Telemetry.DisplayFormat.HTML);
+    if (opModeIsActive()) {
+      // Put run blocks here.
+      while (opModeIsActive()) {
+        // Put loop blocks here.
+        // The tankdrive part
+        DriveInputs();
+        // with the triggers
+        ManualFeed();
+        // Up and Down dpad to change power
+        DrivePowerControls();
+        // Left and RIght Dpad
+        // ShootpowerModifier();
+        // A for far, B for middle, X for close
+        PresetShoots();
+        // for stuff like launcher power, wheel power, drive power modifier from DrivePowerControls
+        Power_Telementry();
+        // Disabled due to camera lag (still have to fix)
+        ApriltagTelementry();
+      }//telemetry.update();
+    }
+
+    // androidTextToSpeech.close();
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void Power_Telementry() {
+    telemetry.addData("Left Pow", driveLeft.getPower());
+    telemetry.addData("Right Pow", driveRight.getPower());
+    telemetry.addData("Launcher power", shootwheel.getPower());
+    telemetry.addData("Launcher Velocity", ((DcMotorEx) shootwheel).getVelocity());
+    telemetry.addData("Drive Power Modifier", Power);
+    // telemetry.addData("Shoot power modifier", ShootPower);
+    // telemetry.update();
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void ManualFeed() {
+    feederMotor.setPower(gamepad1.left_trigger - gamepad1.right_trigger);
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void DriveInputs() {
+    driveLeft.setPower(gamepad1.left_stick_y * Power);
+    driveRight.setPower(gamepad1.right_stick_y * Power);
+    bearingLED();
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void DrivePowerControls() {
+    if (gamepad1.dpad_down_was_pressed() && Power >= 0.1) {
+      Power += -0.1;
+    //   LEDgreen.on();
+    //   sleep(1000);
+    //   LEDgreen.off();
+    }
+    if (gamepad1.dpad_up_was_pressed() && Power <= 1) {
+      Power += 0.1;
+    //   LEDred.on();
+    //   sleep(1000);
+    //   LEDred.off();
+    }
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void ApriltagTelementry() {
+    // Get a list containing the latest detections, which may be stale.
+    myAprilTagDetections = myAprilTagProcessor.getDetections();
+    for (AprilTagDetection myAprilTagDetection_item : myAprilTagDetections) {
+      myAprilTagDetection = myAprilTagDetection_item;
+      telemetry.addData("ID", myAprilTagDetection.id);
+      telemetry.addData("Range", myAprilTagDetection.ftcPose.range);
+      telemetry.addData("ftcX", myAprilTagDetection.ftcPose.x);
+      telemetry.addData("robotX", myAprilTagDetection.robotPose.getPosition().x);
+      telemetry.addData("ftcY", myAprilTagDetection.ftcPose.y);
+      telemetry.addData("robotY", myAprilTagDetection.robotPose.getPosition().y);
+      telemetry.addData("ftcZ", myAprilTagDetection.ftcPose.z);
+      telemetry.addData("robotZ", myAprilTagDetection.robotPose.getPosition().z);
+      telemetry.addData("yaw", myAprilTagDetection.ftcPose.yaw);
+      telemetry.addData("Bearing (use for angle)", myAprilTagDetection.ftcPose.bearing);
+    }
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void PresetShoots() {
+    if (gamepad1.right_bumper) {
+      if (gamepad1.a_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-2000);//set all these velocities to variables eg 'fastSpeed=-2000'
+        shoot3(6);
+      }
+      if (gamepad1.b_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-1600);//medSpeed=-1600
+        shoot3(5);
+      }
+      if (gamepad1.x_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-1400);//lowSpeed=-1400
+        shoot3(5);
+      }
+    } else {
+      if (gamepad1.a_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-1800);//
+        shootdelay(-1800);
+      }
+      if (gamepad1.b_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-1300);
+        shootdelay(-1300);
+      }
+      if (gamepad1.x_was_pressed()) {
+        ((DcMotorEx) shootwheel).setVelocity(-1100);
+        shootdelay(-1100);
+      }
+      if (gamepad1.y_was_pressed()) {
+        // androidTextToSpeech.speak("Use the good one");
+        shootwheel.setPower(-0.6);
+        Dtime = getRuntime() + 3;
+        while (!(Dtime <= getRuntime())) {
+          DriveInputs();
+        }
+        feederMotor.setPower(-1);
+        Dtime = getRuntime() + 0.8;
+        while (!(Dtime <= getRuntime())) {
+          DriveInputs();
+        }
+        ((DcMotorEx) shootwheel).setVelocity(0);
+        feederMotor.setPower(0);
+      }
+    }
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void bearingLED() {
+    double Bearing;
+
+    // Get a list containing the latest detections, which may be stale.
+    myAprilTagDetections = myAprilTagProcessor.getDetections();
+    for (AprilTagDetection myAprilTagDetection_item2 : myAprilTagDetections) {
+      myAprilTagDetection = myAprilTagDetection_item2;
+      Bearing = myAprilTagDetection.ftcPose.bearing;
+      if (Bearing <= -17.5) {
+        LEDred.on();
+        LEDgreen.off(); //okToShoot = false
+      }
+      if (Bearing >= -14) {
+        LEDgreen.on();
+        LEDred.off(); //okToShoot = false
+      }
+      if (Bearing > -17.5 && Bearing <= -14) {
+        LEDgreen.off();//instead we will set boolean 'okToShoot' to true here which will be used in func shoot
+        LEDred.off();
+      }
+    }
+    if (myAprilTagDetections < 1) {
+      LEDgreen.on();
+      LEDred.on();
+    }
+  }
+
+  /**
+   * Describe this function...
+   */
+//   private void ShootpowerModifier() {
+//     if (gamepad1.dpad_left_was_pressed()) {
+//       ShootPower += 0.01;
+//     }
+//     if (gamepad1.dpad_right_was_pressed()) {
+//       ShootPower += -0.01;
+//     }
+//   }
+
+  /**
+   * Describe this function...
+   */
+  private void shootdelay(int targetVelocity) {
+    boolean isShooting;
+
+    isShooting = true;
+    while (isShooting) {
+      DriveInputs();
+      if (((DcMotorEx) shootwheel).getVelocity() <= targetVelocity) {
+        isShooting = false;
+        feederMotor.setPower(-1);
+        Dtime = getRuntime() + 0.8;
+        while (!(Dtime <= getRuntime())) {
+          DriveInputs();
+        }
+        ((DcMotorEx) shootwheel).setVelocity(0);
+        feederMotor.setPower(0);
+      }
+    }
+  }
+
+  /**
+   * Describe this function...
+   */
+  private void shoot3(int delay) {//if(okToShoot && these_buttons_are_pressed)
+    for (int count = 0; count < 3; count++) {
+      DriveInputs();
+      Dtime = getRuntime() + delay;
+      while (!(Dtime <= getRuntime())) {
+        DriveInputs();
+      }
+      feederMotor.setPower(-1);
+      Dtime = getRuntime() + 0.8;
+      while (!(Dtime <= getRuntime())) {
+        DriveInputs();
+      }
+      feederMotor.setPower(0);
+    }
+    shootwheel.setPower(0);
+  }
+}
+
