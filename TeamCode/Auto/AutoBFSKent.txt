@@ -1,0 +1,523 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import java.util.List;
+import org.firstinspires.ftc.robotcore.external.JavaUtil;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+
+@Autonomous(name = "AutoBFSKent")
+public class AutoBFSKent extends LinearOpMode {
+
+  private DcMotor backLeft;
+  private DcMotor backRight;
+  private DcMotor frontLeft;
+  private DcMotor frontRight;
+  private DcMotor feederMotor;
+  private DcMotor shootWheel;
+  private DcMotor shootWheelTwo;
+  private IMU imu;
+
+  boolean adjusted;
+  ElapsedTime runtime;
+  List<AprilTagDetection> myAprilTagDetections;
+  double newLeftTarget;
+  AprilTagDetection myAprilTagDetection;
+  double newRightTarget;
+  AprilTagProcessor myAprilTagProcessor;
+  double Bearing;
+  double COUNTS_PER_INCH;
+  double trackWidth;
+  YawPitchRollAngles orientation;
+
+  // ========== SHOOTER STATE MACHINE VARIABLES ==========
+  private enum ShooterState {
+    IDLE,
+    SPINNING_UP,
+    FIRING_PULSE,
+    BETWEEN_SHOTS
+  }
+
+  private ShooterState shooterState = ShooterState.IDLE;
+
+  private double shooterTargetVelocity = 0;
+  private int shooterShotsRemaining = 0;
+  private double shooterPulseEndTime = 0;
+  private double shooterNextShotTime = 0;
+
+  /**
+   * Estimated maximum shooter velocity in encoder ticks per second.
+   */
+  private final double MAX_TICKS = 2140.0;
+
+  /**
+   * How long the feeder runs for each shot, in seconds.
+   */
+  private final double FEED_PULSE_DURATION = 0.7;
+
+  /**
+   * How close the shooter velocity must be to the target before we consider
+   * it "ready" and start feeding.
+   */
+  private final double VELOCITY_TOLERANCE = 25;
+
+  /**
+   * Minimum time after a shot before we are allowed
+   * to start the next one (seconds).
+   */
+  private final double MIN_RECOVERY_TIME = 0.3;
+
+  /**
+   * Safety velocity multiplier when AprilTag is not detected.
+   */
+  private final double SAFETY_VELOCITY_MULTIPLIER = 0.75;
+
+  @Override
+  public void runOpMode() {
+    backLeft = hardwareMap.get(DcMotor.class, "backLeft");
+    backRight = hardwareMap.get(DcMotor.class, "backRight");
+    frontLeft = hardwareMap.get(DcMotor.class, "frontLeft");
+    frontRight = hardwareMap.get(DcMotor.class, "frontRight");
+    feederMotor = hardwareMap.get(DcMotor.class, "feederMotor");
+    shootWheel = hardwareMap.get(DcMotor.class, "shootWheel");
+    shootWheelTwo = hardwareMap.get(DcMotor.class, "shootWheelTwo");
+    ImuOrientationOnRobot orientationOnRobot;
+    imu = hardwareMap.get(IMU.class, "imu");
+
+    orientationOnRobot = new RevHubOrientationOnRobot(
+        RevHubOrientationOnRobot.LogoFacingDirection.LEFT, 
+        RevHubOrientationOnRobot.UsbFacingDirection.UP);
+
+    imu.initialize(new IMU.Parameters(orientationOnRobot));
+    
+    imu.resetYaw();
+    initializeVisionPortal();
+    runtime = new ElapsedTime();
+    Measurements();
+    MotorSettings();
+    setupShooterPIDF();
+    imu.resetYaw();
+    sleep(100);
+    orientation = imu.getRobotYawPitchRollAngles();
+    
+    telemetry.addData("Starting at", JavaUtil.formatNumber(backLeft.getCurrentPosition(), 7, 0) + 
+                      " : " + JavaUtil.formatNumber(backRight.getCurrentPosition(), 7, 0));
+    telemetry.update();
+    
+    waitForStart();
+    
+    // Autonomous sequence
+    StraightDrive(10,0.5);
+    Turn(-30,0.5);
+    AprilTagTurn(0.3);
+    bestShoot3(0.75);  // 60% power if no AprilTag detected
+    sleep(100);
+    StraightDrive(10, 0.9);
+  }
+  
+  private double getAngle(){
+    double angle = imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.DEGREES);
+    return angle;
+  }
+
+  // ========== SHOOTER STATE MACHINE METHODS ==========
+  
+  /**
+   * Determines whether the shooter flywheel is within an acceptable
+   * tolerance of the target velocity.
+   */
+  private boolean atTargetVelocity() {
+    DcMotorEx shootWheelEx = (DcMotorEx) shootWheel;
+    double current = shootWheelEx.getVelocity();
+    return Math.abs(current - shooterTargetVelocity) <= VELOCITY_TOLERANCE;
+  }
+
+  /**
+   * Advances the shooter state machine by managing flywheel spin-up,
+   * firing pulses, and recovery between shots.
+   */
+  private void updateShooter() {
+    double now = getRuntime();
+    DcMotorEx shootWheelEx = (DcMotorEx) shootWheel;
+    DcMotorEx shootWheelTwoEx = (DcMotorEx) shootWheelTwo;
+
+    switch (shooterState) {
+      case IDLE:
+        // Keep wheels spinning at idle speed
+        shootWheelEx.setVelocity(-(MAX_TICKS * 0.54));
+        shootWheelTwoEx.setVelocity(-(MAX_TICKS * 0.54));
+        break;
+
+      case SPINNING_UP:
+        // Wait until we are at speed before first shot
+        if (atTargetVelocity()) {
+          // Start feeding a ring
+          feederMotor.setPower(-1);
+          shooterPulseEndTime = now + FEED_PULSE_DURATION;
+          shooterState = ShooterState.FIRING_PULSE;
+        }
+        break;
+
+      case FIRING_PULSE:
+        if (now >= shooterPulseEndTime) {
+          feederMotor.setPower(0);
+          shooterShotsRemaining--;
+
+          if (shooterShotsRemaining > 0) {
+            // More shots to go
+            shooterNextShotTime = now + MIN_RECOVERY_TIME;
+            shooterState = ShooterState.BETWEEN_SHOTS;
+          } else {
+            // Done, stop the flywheel
+            shootWheelEx.setVelocity(0);
+            shootWheelTwoEx.setVelocity(0);
+            shooterState = ShooterState.IDLE;
+          }
+        }
+        break;
+
+      case BETWEEN_SHOTS:
+        // Wait for minimum time AND speed recovery
+        if (now >= shooterNextShotTime && atTargetVelocity()) {
+          // Ready to fire next ring
+          feederMotor.setPower(-1);
+          shooterPulseEndTime = now + FEED_PULSE_DURATION;
+          shooterState = ShooterState.FIRING_PULSE;
+        }
+        break;
+    }
+  }
+
+  /**
+   * Shoots 3 rings using AprilTag distance-based velocity calculation.
+   * Falls back to safety velocity if AprilTag is not detected.
+   * 
+   * @param safety The safety velocity multiplier (0.0 to 1.0) used when AprilTag is not detected.
+   *               Example: 0.75 = 75% of MAX_TICKS
+   */
+  private void bestShoot3(double safety) {
+    int calculatedVelocity;
+    
+    // Get AprilTag detections
+    myAprilTagDetections = myAprilTagProcessor.getDetections();
+    
+    // Check if AprilTag is detected and has valid pose data
+    boolean aprilTagDetected = false;
+    if (myAprilTagDetections != null && !myAprilTagDetections.isEmpty()) {
+      // Get the first detection
+      for (AprilTagDetection detection : myAprilTagDetections) {
+        myAprilTagDetection = detection;
+        if (myAprilTagDetection.ftcPose != null) {
+          aprilTagDetected = true;
+          // Calculate velocity using quadratic regression
+          double range = myAprilTagDetection.ftcPose.range;
+          calculatedVelocity = (int)(-(MAX_TICKS/100) * 
+                                ((0.00263 * Math.pow(range, 2)) - 
+                                (0.193 * range) + 67.23));
+    
+          telemetry.addData("AprilTag Range", range);
+          telemetry.addData("Calculated Velocity", calculatedVelocity);
+          telemetry.update();
+    
+    // Start the shooting sequence
+    
+    startBurst(calculatedVelocity, 3);
+        }
+        break;
+      }
+    }
+    
+    if (!aprilTagDetected) {
+      // Safety system: Use custom safety velocity multiplier
+      telemetry.addData("Warning", "No AprilTag detected - using safety velocity");
+      telemetry.addData("Safety Multiplier", safety);
+      telemetry.update();
+      int safetyVelocity = (int)(MAX_TICKS * safety);
+      startBurst(-safetyVelocity, 3);
+      // return;
+    }
+    
+    // // Calculate velocity using quadratic regression
+    // double range = myAprilTagDetection.ftcPose.range;
+    // calculatedVelocity = (int)(-(MAX_TICKS/100) * 
+    //                     ((0.00263 * Math.pow(range, 2)) - 
+    //                       (0.193 * range) + 67.23));
+    
+    // telemetry.addData("AprilTag Range", range);
+    // telemetry.addData("Calculated Velocity", calculatedVelocity);
+    // telemetry.update();
+    
+    // // Start the shooting sequence
+    
+    // startBurst(calculatedVelocity, 3);
+    
+    // Run the state machine until shooting is complete
+    while (opModeIsActive() && shooterState != ShooterState.IDLE) {
+      updateShooter();
+      
+      telemetry.addData("Shooter State", shooterState);
+      telemetry.addData("Shots Remaining", shooterShotsRemaining);
+      telemetry.addData("Target Velocity", shooterTargetVelocity);
+      telemetry.update();
+    }
+  }
+
+
+  private void AprilTagTurn(double TurnSpeed) {
+    adjusted = false;
+    // Get a list containing the latest detections, which may be stale.
+    myAprilTagDetections = myAprilTagProcessor.getDetections();
+    for (AprilTagDetection myAprilTagDetection_item : myAprilTagDetections) {
+      myAprilTagDetection = myAprilTagDetection_item;
+      Bearing = myAprilTagDetection.ftcPose.bearing;
+      if (Bearing>-14){
+        telemetry.addData("Starting bearing", Bearing);
+      Turn((int) (-12 - Bearing), TurnSpeed);
+      adjusted = true;
+      telemetry.addData("Starting bearing", myAprilTagDetection.ftcPose.bearing);
+      } else if(Bearing<-16) {
+        telemetry.addData("Starting bearing", Bearing);
+      Turn((int) (-12 + Bearing), TurnSpeed);
+      adjusted = true;
+      telemetry.addData("Starting bearing", myAprilTagDetection.ftcPose.bearing);
+      }
+      
+    }
+    if (!adjusted) {
+      telemetry.addData("Couldn't See",0);
+      // Turn(5, TurnSpeed);
+    }
+  }
+  /**
+   * Starts an automatic shooting sequence.
+   */
+  private void startBurst(int targetVelocity, int shots) {
+    DcMotorEx shootWheelEx = (DcMotorEx) shootWheel;
+    DcMotorEx shootWheelTwoEx = (DcMotorEx) shootWheelTwo;
+    
+    shooterTargetVelocity = targetVelocity;
+    shooterShotsRemaining = shots;
+
+    shootWheelEx.setVelocity(shooterTargetVelocity);
+    shootWheelTwoEx.setVelocity(shooterTargetVelocity);
+    shooterState = ShooterState.SPINNING_UP;
+  }
+
+  /**
+   * Setup PIDF coefficients for shooter motor velocity control.
+   */
+  private void setupShooterPIDF() {
+    DcMotorEx shootWheelEx = (DcMotorEx) shootWheel;
+    DcMotorEx shootWheelTwoEx = (DcMotorEx) shootWheelTwo;
+    
+    shootWheelEx.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    shootWheelEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    shootWheelEx.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+    
+    shootWheelTwoEx.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    shootWheelTwoEx.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    shootWheelTwoEx.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+    double maxTicksPerSecond = MAX_TICKS;
+    double kF = 32767.0 / maxTicksPerSecond;
+    double kP = 4.0;
+    double kI = 0.0;
+    double kD = 0.0;
+
+    PIDFCoefficients shooterPIDF = new PIDFCoefficients(kP, kI, kD, kF);
+    shootWheelEx.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+    shootWheelTwoEx.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, shooterPIDF);
+    
+    shootWheelEx.setVelocity(0);
+    shootWheelTwoEx.setVelocity(0);
+  }
+
+  // ========== VISION METHODS ==========
+
+  private void initializeVisionPortal() {
+    VisionPortal.Builder myVisionPortalBuilder;
+    AprilTagProcessor.Builder myAprilTagProcessorBuilder;
+    Position cameraPosition;
+    YawPitchRollAngles cameraOrientation;
+    VisionPortal myVisionPortal;
+
+    cameraPosition = new Position(DistanceUnit.CM, 0, 0, 0, 0);
+    cameraOrientation = new YawPitchRollAngles(AngleUnit.DEGREES, 0, 70, 180, 0);
+    
+    myVisionPortalBuilder = new VisionPortal.Builder();
+    myVisionPortalBuilder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+    
+    myAprilTagProcessorBuilder = new AprilTagProcessor.Builder();
+    myAprilTagProcessorBuilder.setDrawCubeProjection(true);
+    myAprilTagProcessorBuilder.setDrawTagOutline(true);
+    myAprilTagProcessorBuilder.setDrawTagID(true);
+    myAprilTagProcessorBuilder.setDrawAxes(true);
+    myAprilTagProcessorBuilder.setCameraPose(cameraPosition, cameraOrientation);
+    
+    myAprilTagProcessor = myAprilTagProcessorBuilder.build();
+    myVisionPortalBuilder.addProcessor(myAprilTagProcessor);
+    myVisionPortal = myVisionPortalBuilder.build();
+    myVisionPortal.resumeLiveView();
+  }
+
+  // ========== DRIVE METHODS ==========
+
+  private void StraightDrive(int Distance, double Power) {
+    if (opModeIsActive()) {
+      newLeftTarget = backLeft.getCurrentPosition() + Math.floor(Distance * COUNTS_PER_INCH);
+      newRightTarget = backRight.getCurrentPosition() + Math.floor(Distance * COUNTS_PER_INCH);
+      backLeft.setTargetPosition((int) newLeftTarget);
+      backRight.setTargetPosition((int) newRightTarget);
+      frontLeft.setTargetPosition((int) newLeftTarget);
+      frontRight.setTargetPosition((int) newRightTarget);
+      
+      backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      
+      backLeft.setPower(Math.abs(Power));
+      backRight.setPower(Math.abs(Power));
+      frontLeft.setPower(Math.abs(Power));
+      frontRight.setPower(Math.abs(Power));
+      
+      while (opModeIsActive() && backLeft.isBusy() && backRight.isBusy()) {
+        telemetry.addData("Running to", JavaUtil.formatNumber(newLeftTarget, 7, 0) + " :" + 
+                          JavaUtil.formatNumber(newRightTarget, 7, 0));
+        telemetry.addData("Currently at", JavaUtil.formatNumber(backLeft.getCurrentPosition(), 7, 0) + " :" + 
+                          JavaUtil.formatNumber(backRight.getCurrentPosition(), 7, 0));
+        telemetry.update();
+      }
+      
+      frontLeft.setPower(0);
+      frontRight.setPower(0);
+      backLeft.setPower(0);
+      backRight.setPower(0);
+      
+      backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      
+      sleep(250);
+    }
+  }
+
+  private void MotorSettings() {
+    backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    frontLeft.setDirection(DcMotor.Direction.REVERSE);
+    backLeft.setDirection(DcMotor.Direction.FORWARD);
+    backRight.setDirection(DcMotor.Direction.REVERSE);
+    frontRight.setDirection(DcMotor.Direction.REVERSE);
+    feederMotor.setDirection(DcMotor.Direction.FORWARD);
+    backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+  }
+
+  private void Measurements() {
+    int COUNTS_PER_MOTOR_REV = 28;
+    int DRIVE_GEAR_REDUCTION = 20;
+    double WHEEL_DIAMETER_INCHES = 3.5;
+
+    COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / 
+                      (WHEEL_DIAMETER_INCHES * Math.PI);
+    trackWidth = 9;
+  }
+
+  private void shoot3(double delay, int velocity) {
+    double Dtime;
+
+    ((DcMotorEx) shootWheel).setVelocity(-velocity);
+    ((DcMotorEx) shootWheelTwo).setVelocity(-velocity);
+    sleep(500);
+    
+    for (int count2 = 0; count2 < 3; count2++) {
+      Dtime = getRuntime() + delay;
+      while (!(Dtime <= getRuntime()) && opModeIsActive()) {
+        // Wait
+      }
+      feederMotor.setPower(-1);
+      Dtime = getRuntime() + 0.8;
+      while (!(Dtime <= getRuntime()) && opModeIsActive()) {
+        // Wait
+      }
+      feederMotor.setPower(0);
+    }
+    
+    shootWheel.setPower(0);
+    shootWheelTwo.setPower(0);
+  }
+
+  private void Turn(int Angle, double AngleSpeed) {
+    if (opModeIsActive()) {
+      frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+      
+      newLeftTarget = backLeft.getCurrentPosition() + 
+                      Math.floor(3.14159 * trackWidth * (1.0/2.0) * (Angle / 180.0) * COUNTS_PER_INCH);
+      newRightTarget = backRight.getCurrentPosition() + 
+                       Math.floor(-3.14159 * trackWidth * (1.0/2.0) * (Angle / 180.0) * COUNTS_PER_INCH);
+      
+      backLeft.setTargetPosition((int) newLeftTarget);
+      backRight.setTargetPosition((int) newRightTarget);
+      frontLeft.setTargetPosition((int) newLeftTarget);
+      frontRight.setTargetPosition((int) newRightTarget);
+      
+      frontLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      backLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      backRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+      
+      runtime.reset();
+      backLeft.setPower(Math.abs(AngleSpeed));
+      backRight.setPower(Math.abs(AngleSpeed));
+      frontLeft.setPower(Math.abs(AngleSpeed));
+      frontRight.setPower(Math.abs(AngleSpeed));
+      
+      while (opModeIsActive() && (backLeft.isBusy() || backRight.isBusy())) {
+        telemetry.addData("Running to", JavaUtil.formatNumber(newLeftTarget, 7, 0) + " :" + 
+                          JavaUtil.formatNumber(newRightTarget, 7, 0));
+        telemetry.addData("Currently at", JavaUtil.formatNumber(backLeft.getCurrentPosition(), 7, 0) + " :" + 
+                          JavaUtil.formatNumber(backRight.getCurrentPosition(), 7, 0));
+        telemetry.update();
+      }
+      
+      backLeft.setPower(0);
+      backRight.setPower(0);
+      frontLeft.setPower(0);
+      frontRight.setPower(0);
+      
+      backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+      
+      sleep(250);
+    }
+  }
+}
