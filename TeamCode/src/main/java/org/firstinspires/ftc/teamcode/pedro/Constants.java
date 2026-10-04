@@ -56,7 +56,7 @@ public class Constants {
                 c.linearBrakeCoefficients.set(Matrix.diag(0.07799679827357182, 0.06076085230077976));
                 c.quadraticBrakeCoefficients.set(Matrix.diag(0.001697587093806737, 0.0020027120021232784));
 
-                c.maxAchievableForwardVelocity.set(42.415964850870566);
+                c.maxAchievableForwardVelocity.set(42.415964850870566);//
                 c.maxAchievableStrafeVelocity.set(35.02970774555432);
                 c.naturalForwardDeceleration.set(48.198031968719214);
                 c.naturalStrafeDeceleration.set(82.48260721041399);
