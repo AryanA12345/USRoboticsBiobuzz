@@ -1,3 +1,6 @@
+/**Field-centric teleop with waypoint functionality
+ * Updated on 10/11/2026
+ */
 package org.firstinspires.ftc.teamcode;
 import static com.pedropathing.api.Paths.*;
 import com.pedropathing.api.Paths;
@@ -42,7 +45,11 @@ public class ExampleTeleOp extends OpMode {
         // new Pose(10.5, 10.5, Math.toRadians(90));
 
     }
-
+    @Override
+    public void start() {
+        follower.setPose(OpModeStorage.autonomousEndPose);
+        follower.update();
+    }
     @Override
     public void loop() {
         DrivePowers powers = ManualDrive.fieldCentric(
