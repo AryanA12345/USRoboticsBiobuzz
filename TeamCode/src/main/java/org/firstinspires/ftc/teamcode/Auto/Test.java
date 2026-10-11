@@ -1,3 +1,8 @@
+/**
+ * Auto proof-of-concept that has the robot do a lap of the field.
+ * Not intended for competition use
+ * Now includes AutoTelemetry class to shorten loop()
+ */
 package org.firstinspires.ftc.teamcode.Auto;
 
 import static com.pedropathing.api.Paths.*;
@@ -21,6 +26,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 @Autonomous(name = "AutoPath", group = "Autonomous")
 public class Test extends LinearOpMode {
 
+    private AutoTelemetry autoTelemetry;
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
@@ -61,23 +67,23 @@ public class Test extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
-
+        AutoTelemetry autoTelemetry = new AutoTelemetry(follower, telemetry);
         waitForStart();
         schedule(autoRoutine());
 
         while (opModeIsActive()) {
-            follower.update();
+            //follower.update();
             Scheduler.execute();
 
-            telemetry.addData("x", follower.pose().x());
+            /*telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
             telemetry.addData("heading", follower.pose().heading());
 
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
-            }
-
+            }*/
+            autoTelemetry.update();
             telemetry.update();
         }
     }

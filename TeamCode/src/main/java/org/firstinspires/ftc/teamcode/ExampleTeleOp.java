@@ -1,4 +1,5 @@
-/**Field-centric teleop with waypoint functionality
+/**
+ * Field-centric teleop with waypoint functionality and position holding
  * Updated on 10/11/2026
  */
 package org.firstinspires.ftc.teamcode;
@@ -35,6 +36,9 @@ public class ExampleTeleOp extends OpMode {
 
     }
     private Follower follower;
+    /**
+     * {@code Pose} position set by user in TeleOp by pressing A. Can be traveled back to by pressing B.
+     */
     Pose waypoint = null;
     @Override
     public void init() {

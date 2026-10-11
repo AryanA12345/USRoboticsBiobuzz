@@ -1,0 +1,2 @@
+## PedroVisualization 
+PedroVisualization is a folder containing the import files for <a href='https://visualizer.pedropathing.com/'>PedroPathing's visualization website</a> so we can visualize our autos digitally. Please attempt to keep these reasonably up-to-date. Also, reference the .pp file in javadoc comments at the top of each auto. 

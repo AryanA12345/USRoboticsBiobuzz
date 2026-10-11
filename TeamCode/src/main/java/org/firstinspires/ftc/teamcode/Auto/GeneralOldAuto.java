@@ -1,3 +1,8 @@
+/**
+ * Example auto from 2025-2026 competition.
+ * 2026 apriltag changes not implemented.
+ * Most likely not functional
+ */
 package org.firstinspires.ftc.teamcode.Auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
