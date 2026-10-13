@@ -15,6 +15,8 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
+
+import static com.pedropathing.ivy.Scheduler.isScheduled;
 import static com.pedropathing.ivy.Scheduler.schedule;
 
 import org.firstinspires.ftc.teamcode.OpModeStorage;
@@ -34,8 +36,8 @@ public class RedShoot extends /*Linear*/OpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(133.5586, 8.296, 90);
-    private final Pose path1 = poseFactory.of(59.2563, 8.296, 90);
+    private final Pose start = poseFactory.of(127.5586, 10.296, 90);
+    private final Pose path1 = poseFactory.of(59.2563, 11.296, 90);
     private final Pose path1Control1 = poseFactory.of(89.6496, 63.5596, 0);
 
     private final Pose point2 = poseFactory.of(59.8159, 38.1161, 88.9249);
@@ -72,9 +74,19 @@ public class RedShoot extends /*Linear*/OpMode {
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
-        /*AutoTelemetry */autoTelemetry = new AutoTelemetry(follower, telemetry); //New class to clean up loop()
+        /*AutoTelemetry */
+        autoTelemetry = new AutoTelemetry(follower, telemetry); //New class to clean up loop()
 
         schedule(autoInit()); //This should move the robot to the gameplay starting position when INIT is pressed
+    }
+
+    @Override
+    public void init_loop(){
+
+            Scheduler.execute();
+            follower.update();
+
+
 
     }
 
