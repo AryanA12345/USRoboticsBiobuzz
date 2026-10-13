@@ -56,7 +56,22 @@ public class PollenVisionTest extends LinearOpMode {
                 telemetry.addData("Pollen", "none in view");
             }
             telemetry.update();
-            chasePollen(limelight);
+            if(gamepad1.dpad_up) {
+                chasePollen(limelight, 0);
+            } else if (gamepad1.dpad_left) {
+                chasePollen(limelight, 1);
+            } else if (gamepad1.dpad_right){
+                chasePollen(limelight, 2);
+            } else {
+                DrivePowers powers = ManualDrive.fieldCentric(
+                        -gamepad1.left_stick_y,
+                        -gamepad1.left_stick_x,
+                        -gamepad1.right_stick_x,
+                        follower.pose().heading()
+                );
+
+                ManualDrive.driveOrHold(follower, powers);
+            }
         }
         limelight.stop();
     }
@@ -67,7 +82,7 @@ public class PollenVisionTest extends LinearOpMode {
     }
     // Tuning constants: start small, raise until it's quick without wobbling
     static final double TURN_KP = 0.02; // power per degree of tx
-    static final double DRIVE_KP = 0.03; // power per inch of distance
+    static final double DRIVE_KP = 0.3; // power per inch of distance
     static final double TX_TOLERANCE = 2.0; // degrees: "lined up"
     static final double STOP_DIST_IN = 8.0; // stop here and let the intake grab it
     static final double MAX_POWER = 0.5;
@@ -77,7 +92,8 @@ public class PollenVisionTest extends LinearOpMode {
 
 
     /** Returns true when the robot is lined up and close enough to intake. */
-    boolean chasePollen(Limelight3A limelight) {
+    boolean chasePollen(Limelight3A limelight, int pipe) {
+        limelight.pipelineSwitch(pipe);
         LLResult result = limelight.getLatestResult();
         if (result == null || !result.isValid()) {
             drive(follower, 0, 0, 0.25); // no ball: slow search spin
