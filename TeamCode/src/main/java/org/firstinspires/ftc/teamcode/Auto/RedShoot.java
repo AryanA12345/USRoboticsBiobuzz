@@ -1,9 +1,9 @@
 /**
  * Path visualization at /PedroVisualization/RedShoot.pp
  * Autonomous starting below red goal, shoots, then parks in red zone
- * Place robot at bottom-right corner: (133,8)
+ * Place robot at bottom-right corner (133,8) and push to approximate starting position
  * Now includes AutoTelemetry class to shorten loop()
- * Updated on 10/11/2026
+ * Updated on 10/13/2026
  */
 package org.firstinspires.ftc.teamcode.Auto;
 
@@ -51,11 +51,13 @@ public class RedShoot extends /*Linear*/OpMode {
      * Moves robot from bottom left corner (starting position) {@link #start} to autonomous starting point {@link #path1}
      * @return path to starting position
      */
+    /*
     public Command autoInit() {
         return sequential(
                 follow(follower, path1())
         );
     }
+     */
 
     /**
      * Moves robot through autonomous sequence
@@ -77,16 +79,14 @@ public class RedShoot extends /*Linear*/OpMode {
         /*AutoTelemetry */
         autoTelemetry = new AutoTelemetry(follower, telemetry); //New class to clean up loop()
 
-        schedule(autoInit()); //This should move the robot to the gameplay starting position when INIT is pressed
+        //schedule(autoInit()); //This should move the robot to the gameplay starting position when INIT is pressed
     }
 
     @Override
     public void init_loop(){
-
-            Scheduler.execute();
-            follower.update();
-
-
+        autoTelemetry.update();
+        telemetry.update();
+        follower.update();
 
     }
 
@@ -144,17 +144,18 @@ public class RedShoot extends /*Linear*/OpMode {
     }*/
 
     /**
-     * @return auto initialization path from {@link #start} to {@link #path1}
+     * @return auto initialization path from robot's starting position to {@link #path1}
      */
-    public Path path1() {
-        return Paths.curve(start, path1Control1, path1).linear(start, path1);
+    /*public Path path1() {
+        return Paths.line(follower.pose(), path1).linear(follower.pose(), path1);
     }
+     */
 
     /**
      * @return auto path
      */
     public Path path2() {
-        return Paths.line(path1, point2).tangent();
+        return Paths.line(follower.pose(), point2).tangent();
     }
 
     /**
