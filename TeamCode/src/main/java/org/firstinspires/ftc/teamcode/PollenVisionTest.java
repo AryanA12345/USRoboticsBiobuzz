@@ -1,3 +1,7 @@
+/**
+ * TeleOp with ball finding functionality
+ * Updated on 10/14/2026
+ */
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -25,8 +29,17 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 public class PollenVisionTest extends LinearOpMode {
     // Measure these on YOUR robot (Step 1)
     private Follower follower;
+    /**
+     * lens to floor
+     */
     static final double CAMERA_HEIGHT_IN = 8.25; // lens to floor
+    /**
+     * tilted down from horizontal
+     */
     static final double MOUNT_ANGLE_DEG = -2; // tilted down from horizontal
+    /**
+     * measure a pollen ball (need to update for nectar)
+     */
     static final double BALL_RADIUS_IN = 2.5; // measure a pollen ball
     @Override
     public void runOpMode() {
@@ -76,6 +89,12 @@ public class PollenVisionTest extends LinearOpMode {
         limelight.stop();
     }
     // Camera looks down at MOUNT_ANGLE_DEG; the ball sits ty degrees above or below the crosshair
+
+    /**
+     * calculates distance to ball
+     * @param ty degrees down from cursor
+     * @return distance (approximate)
+     */
     double distanceToBall(double ty) {
         double angleDownRad = Math.toRadians(MOUNT_ANGLE_DEG - ty);
         return (CAMERA_HEIGHT_IN - BALL_RADIUS_IN) / Math.tan(angleDownRad);
@@ -91,7 +110,9 @@ public class PollenVisionTest extends LinearOpMode {
 
 
 
-    /** Returns true when the robot is lined up and close enough to intake. */
+    /** Returns true when the robot is lined up and close enough to intake.
+     *  {@code pipe}: 0 is pollen, 1 is red nectar, 2 is blue nectar
+     */
     boolean chasePollen(Limelight3A limelight, int pipe) {
         limelight.pipelineSwitch(pipe);
         LLResult result = limelight.getLatestResult();
