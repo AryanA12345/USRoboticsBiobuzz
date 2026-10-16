@@ -29,4 +29,5 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation 'com.example:panels-plugin:1.0.0'
 }
