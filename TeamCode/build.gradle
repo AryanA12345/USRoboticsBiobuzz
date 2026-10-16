@@ -31,4 +31,5 @@ dependencies {
     implementation project(':FtcRobotController')
     implementation 'com.example:panels-plugin:1.0.0'
     implementation "com.bylazar:fullpanels:1.0.7"
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 }
