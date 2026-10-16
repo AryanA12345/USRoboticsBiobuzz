@@ -3,7 +3,9 @@
  * Updated on 10/11/2026
  */
 package org.firstinspires.ftc.teamcode;
+
 import static com.pedropathing.api.Paths.*;
+
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
@@ -21,10 +23,8 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 
-
 @TeleOp(name = "Example TeleOp")
 public class ExampleTeleOp extends OpMode {
-    public class TeleopPaths {
 
         //private final PoseFactory poseFactory = PoseFactory.degrees();
 
@@ -34,12 +34,16 @@ public class ExampleTeleOp extends OpMode {
             return Paths.line(follower.pose(), end).constant(end);
         }*/
 
-    }
+
+
     private Follower follower;
     /**
      * {@code Pose} position set by user in TeleOp by pressing A. Can be traveled back to by pressing B.
      */
     Pose waypoint = null;
+
+
+
     @Override
     public void init() {
 
@@ -69,13 +73,18 @@ public class ExampleTeleOp extends OpMode {
         telemetry.addData("Robot X", robotPose.x());
         telemetry.addData("Robot Y", robotPose.y());
         telemetry.addData("Robot Heading", Math.toDegrees(robotPose.heading()));
-        telemetry.addData("waypoint",waypoint);
+        telemetry.addData("waypoint", waypoint);
+
+        if (gamepad1.dpadUpWasPressed()) {
+
+
+        }
 
         if (gamepad1.a) {
             waypoint = new Pose(robotPose.x(), robotPose.y(), Math.toDegrees(robotPose.heading()));
-            telemetry.addData("waypoint",waypoint);
+            telemetry.addData("waypoint", waypoint);
         }
-        if(gamepad1.bWasPressed() && waypoint!=null){
+        if (gamepad1.bWasPressed() && waypoint != null) {
             follower.follow(Paths.line(robotPose, waypoint).constant(waypoint.heading()));
         }
 
