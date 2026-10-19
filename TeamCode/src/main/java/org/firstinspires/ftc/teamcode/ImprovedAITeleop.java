@@ -29,7 +29,7 @@ public class ImprovedAITeleop extends LinearOpMode {
     private Follower follower;
     private PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(127.5586, 10.296, 90);
+    private final Pose start = poseFactory.of(8, 8, 90);
 
     // Camera specifications
     static final double CAMERA_HEIGHT_IN = 8.25;

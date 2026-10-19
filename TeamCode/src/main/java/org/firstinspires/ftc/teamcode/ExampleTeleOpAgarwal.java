@@ -47,7 +47,7 @@ public class ExampleTeleOpAgarwal extends OpMode {
     }
     @Override
     public void start() {
-        follower.setPose(OpModeStorage.autonomousEndPose);
+        follower.setPose(/*OpModeStorage.autonomousEndPose*/new Pose(8,8,90));
 
         allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
 
