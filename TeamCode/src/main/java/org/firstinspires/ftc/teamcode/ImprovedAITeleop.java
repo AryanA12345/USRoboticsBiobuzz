@@ -29,6 +29,8 @@ public class ImprovedAITeleop extends LinearOpMode {
     private Follower follower;
     private PoseFactory poseFactory;
 
+    private final Pose start = poseFactory.of(127.5586, 10.296, 90);
+
     // Camera specifications
     static final double CAMERA_HEIGHT_IN = 8.25;
     static final double MOUNT_ANGLE_DEG = -2;
@@ -67,6 +69,7 @@ public class ImprovedAITeleop extends LinearOpMode {
 
         follower = Constants.create(hardwareMap);
         poseFactory = PoseFactory.degrees(); // Pedro v3 PoseFactory using degrees
+        follower.setPose(start);
 
         waitForStart();
 
