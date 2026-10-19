@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
-import static com.pedropathing.api.Paths.*;
 import com.pedropathing.api.Paths;
 
 import com.pedropathing.api.PoseFactory;
@@ -10,26 +9,27 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.schedule;
-import static com.pedropathing.ivy.commands.Commands.*;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "AutoStartPos1", group = "Autonomous")
-public class AutoStartPos1 extends LinearOpMode {
+@Autonomous(name = "AutoPathPositionARed", group = "Autonomous")
+public class AutoPathPositionARed extends OpMode {
 
+    private AutoTelemetry autoTelemetry;
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(70.7836, 8.528, 90);
-    private final Pose path1 = poseFactory.of(56.6, 27.9163, 90);
-    private final Pose point2 = poseFactory.of(7.6418, 14.1455, -90);
-    private final Pose point3 = poseFactory.of(7.7528, 8.097, 270);
-    private final Pose point4 = poseFactory.of(56.472, 21.8088, 90);
+    private final Pose start = poseFactory.of(70.7836, 4.8321, 90);
+    private final Pose path1 = poseFactory.of(57.32, 35.472, 90);
+    private final Pose point2 = poseFactory.of(7.7388, 12.9935, 270);
+    private final Pose point3 = poseFactory.of(7.833, 8.1138, 270);
+    private final Pose point4 = poseFactory.of(57.3451, 29.7295, 90);
 
     // Autonomous routine
     public Command autoRoutine() {
@@ -41,35 +41,43 @@ public class AutoStartPos1 extends LinearOpMode {
         );
     }
 
-    @Override
-    public void runOpMode() {
+    public void init() {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
+        /*AutoTelemetry */
+        autoTelemetry = new AutoTelemetry(follower, telemetry);
 
-        waitForStart();
+    }
+
+    @Override
+    public void init_loop(){
+        autoTelemetry.update();
+        telemetry.update();
+        follower.update();
+
+    }
+
+    @Override
+    public void start() {
         schedule(autoRoutine());
+    }
 
-        while (opModeIsActive()) {
-            follower.update();
-            Scheduler.execute();
+    @Override
+    public void loop() {
+        Scheduler.execute();
+        autoTelemetry.update();
+        telemetry.update();
+    }
 
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
-
-            if (follower.currentPath() != null) {
-                telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
-                telemetry.addData("Path number", follower.pathIndex());
-            }
-
-            telemetry.update();
-        }
+    public void stop() {
+        OpModeStorage.autonomousEndPose = follower.pose();
+        OpModeStorage.isRedAlliance = true;                //VERY IMPORTANT CHANGE FOR EVERY AUTO
     }
 
     public Path path1() {
-        return Paths.line(start, path1).linear(start, path1);
+        return Paths.line(start, path1).constant(path1);
     }
 
     public Path path2() {

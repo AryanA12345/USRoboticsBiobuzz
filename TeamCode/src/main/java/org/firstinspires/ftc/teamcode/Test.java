@@ -19,6 +19,7 @@ import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.Auto.AutoTelemetry;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "AutoPath", group = "Autonomous")

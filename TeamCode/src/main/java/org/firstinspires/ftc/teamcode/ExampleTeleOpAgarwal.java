@@ -21,6 +21,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 public class ExampleTeleOpAgarwal extends OpMode {
 
     private Follower follower;
+
     /**
      * {@code Pose} position set by user in TeleOp by pressing A. Can be traveled back to by pressing B.
      */
@@ -86,12 +87,22 @@ public class ExampleTeleOpAgarwal extends OpMode {
         );
 
         if (isOriented){
-            if (hiveIsRight){
-                targetX = 58;
-                targetY = 52;
+            if (OpModeStorage.isRedAlliance) {
+                if (hiveIsRight) {
+                    targetX = 58;
+                    targetY = 52;
+                } else {
+                    targetX = 58;
+                    targetY = 90;
+                }
             } else {
-                targetX = 58;
-                targetY = 90;
+                if (hiveIsRight) {
+                    targetX = 84;
+                    targetY = 52;
+                } else {
+                    targetX = 84;
+                    targetY = 90;
+                }
             }
             arctanOrientation = Math.atan2(targetY-follower.pose().y(), targetX - follower.pose().x());
             powers = ManualDrive.headingLock(follower, headingPID, powers, arctanOrientation);
