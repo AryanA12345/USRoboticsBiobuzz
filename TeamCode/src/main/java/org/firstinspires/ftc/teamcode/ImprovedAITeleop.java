@@ -27,7 +27,7 @@ import java.util.List;
 public class ImprovedAITeleop extends LinearOpMode {
 
     private Follower follower;
-    private PoseFactory poseFactory;
+    private PoseFactory poseFactory = PoseFactory.degrees();
 
     private final Pose start = poseFactory.of(127.5586, 10.296, 90);
 
