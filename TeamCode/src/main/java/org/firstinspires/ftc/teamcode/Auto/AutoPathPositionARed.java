@@ -25,10 +25,10 @@ public class AutoPathPositionARed extends OpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(70.7836, 4.8321, 90);
+    private final Pose start = poseFactory.of(70.7836, 9, 90);
     private final Pose path1 = poseFactory.of(57.32, 35.472, 90);
-    private final Pose point2 = poseFactory.of(7.7388, 12.9935, 270);
-    private final Pose point3 = poseFactory.of(7.833, 8.1138, 270);
+    private final Pose point2 = poseFactory.of(9, 14, 270);
+    private final Pose point3 = poseFactory.of(9, 8.1138, 270);
     private final Pose point4 = poseFactory.of(57.3451, 29.7295, 90);
 
     // Autonomous routine

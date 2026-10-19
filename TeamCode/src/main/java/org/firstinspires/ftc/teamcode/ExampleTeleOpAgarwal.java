@@ -28,6 +28,7 @@ public class ExampleTeleOpAgarwal extends OpMode {
     Pose waypoint = null;
     Boolean hiveIsRight = true;
     Boolean isOriented = false;
+    private double allianceOffset = 0.0;
     double arctanOrientation;
     double targetX;
     double targetY;
@@ -47,6 +48,10 @@ public class ExampleTeleOpAgarwal extends OpMode {
     @Override
     public void start() {
         follower.setPose(OpModeStorage.autonomousEndPose);
+
+        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
+
+
         follower.update();
     }
 
@@ -79,11 +84,15 @@ public class ExampleTeleOpAgarwal extends OpMode {
 //    }
     @Override
     public void loop() {
+
+        double effectiveHeading = follower.pose().heading() + allianceOffset;
+
+
         DrivePowers powers = ManualDrive.fieldCentric(
                 -gamepad1.left_stick_y,
                 -gamepad1.left_stick_x,
                 -gamepad1.right_stick_x,
-                follower.pose().heading()
+                effectiveHeading
         );
 
         if (isOriented){
