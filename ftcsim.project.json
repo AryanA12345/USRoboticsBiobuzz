@@ -1,1 +1,704 @@
-
+{
+  "schemaVersion": 3,
+  "name": "MyFTCProject",
+  "sdkVersion": "11.1.0",
+  "kotlinVersion": "2.2.10",
+  "javaBytecodeTarget": 8,
+  "package": "org.firstinspires.ftc.teamcode",
+  "starter": "java",
+  "template": {
+    "id": "selected-examples",
+    "revision": 1,
+    "language": "java"
+  },
+  "examples": [
+    "ftcsim:driver-controlled",
+    "ftcsim:park-auto"
+  ],
+  "field": {
+    "preset": "biobuzz-2026-2027"
+  },
+  "robot": {
+    "drivetrain": {
+      "kind": "mecanum",
+      "bindings": {
+        "frontLeft": "motor-front_left_drive",
+        "frontRight": "motor-front_right_drive",
+        "backLeft": "motor-back_left_drive",
+        "backRight": "motor-back_right_drive"
+      }
+    },
+    "motorNamingPreset": "descriptive",
+    "controllers": [
+      {
+        "id": "control-hub",
+        "kind": "rev-control-hub",
+        "name": "Control Hub",
+        "address": 1
+      },
+      {
+        "id": "expansion-hub-2",
+        "kind": "rev-expansion-hub",
+        "name": "Expansion Hub 2",
+        "address": 2
+      }
+    ],
+    "devices": [
+      {
+        "id": "motor-front_left_drive",
+        "kind": "dc-motor",
+        "hardwareMapName": "frontLeft",
+        "motorModelId": "RevRoboticsUltraplanetaryHDHexMotor",
+        "controllerId": "control-hub",
+        "port": 0
+      },
+      {
+        "id": "motor-front_right_drive",
+        "kind": "dc-motor",
+        "hardwareMapName": "frontRight",
+        "motorModelId": "RevRoboticsUltraplanetaryHDHexMotor",
+        "controllerId": "control-hub",
+        "port": 1
+      },
+      {
+        "id": "motor-back_left_drive",
+        "kind": "dc-motor",
+        "hardwareMapName": "backLeft",
+        "motorModelId": "RevRoboticsUltraplanetaryHDHexMotor",
+        "controllerId": "control-hub",
+        "port": 2
+      },
+      {
+        "id": "motor-back_right_drive",
+        "kind": "dc-motor",
+        "hardwareMapName": "backRight",
+        "motorModelId": "RevRoboticsUltraplanetaryHDHexMotor",
+        "controllerId": "control-hub",
+        "port": 3
+      },
+      {
+        "id": "motor-intake",
+        "kind": "dc-motor",
+        "hardwareMapName": "intake",
+        "motorModelId": "goBILDA5202SeriesMotor",
+        "controllerId": "expansion-hub-2",
+        "port": 0
+      },
+      {
+        "id": "motor-turret",
+        "kind": "dc-motor",
+        "hardwareMapName": "turret",
+        "motorModelId": "goBILDA5202SeriesMotor",
+        "controllerId": "expansion-hub-2",
+        "port": 1
+      },
+      {
+        "id": "motor-flywheel",
+        "kind": "dc-motor",
+        "hardwareMapName": "flywheel",
+        "motorModelId": "goBILDA5202SeriesMotor",
+        "controllerId": "expansion-hub-2",
+        "port": 2
+      },
+      {
+        "id": "motor-lift",
+        "kind": "dc-motor",
+        "hardwareMapName": "lift",
+        "motorModelId": "goBILDA5202SeriesMotor",
+        "controllerId": "expansion-hub-2",
+        "port": 3
+      }
+    ],
+    "editor": {
+      "schemaVersion": 1,
+      "nodePositions": {
+        "controller:control-hub": {
+          "x": 0,
+          "y": 0
+        },
+        "controller:expansion-hub-2": {
+          "x": 0,
+          "y": 228
+        },
+        "motor:motor-front_left_drive": {
+          "x": 264,
+          "y": 0
+        },
+        "motor:motor-front_right_drive": {
+          "x": 512,
+          "y": 0
+        },
+        "motor:motor-back_left_drive": {
+          "x": 264,
+          "y": 128
+        },
+        "motor:motor-back_right_drive": {
+          "x": 512,
+          "y": 128
+        },
+        "motor:motor-intake": {
+          "x": 264,
+          "y": 256
+        },
+        "motor:motor-turret": {
+          "x": 512,
+          "y": 256
+        },
+        "motor:motor-flywheel": {
+          "x": 264,
+          "y": 384
+        },
+        "motor:motor-lift": {
+          "x": 512,
+          "y": 384
+        },
+        "drivetrain": {
+          "x": 760,
+          "y": 140
+        }
+      }
+    },
+    "physical": {
+      "id": "biobuzz-all-rounder-v4",
+      "label": "BIOBUZZ all-rounder",
+      "physicalAccuracy": "unvalidated",
+      "chassis": {
+        "size": {
+          "x": 0.438,
+          "y": 0.15,
+          "z": 0.438
+        },
+        "massKg": 14,
+        "centerOfMass": {
+          "x": -0.02,
+          "y": 0.035,
+          "z": 0
+        }
+      },
+      "motors": [
+        {
+          "name": "frontLeft",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 300,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 560,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 1,
+          "efficiency": 0.9,
+          "inverted": true
+        },
+        {
+          "name": "frontRight",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 300,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 560,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 1,
+          "efficiency": 0.9,
+          "inverted": true
+        },
+        {
+          "name": "backLeft",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 300,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 560,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 1,
+          "efficiency": 0.9,
+          "inverted": false
+        },
+        {
+          "name": "backRight",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 300,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 560,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 1,
+          "efficiency": 0.9,
+          "inverted": true
+        },
+        {
+          "name": "intake",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 312,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 537.7,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 0.5,
+          "efficiency": 0.9,
+          "inverted": false
+        },
+        {
+          "name": "turret",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 312,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 537.7,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 5,
+          "efficiency": 0.9,
+          "inverted": false
+        },
+        {
+          "name": "flywheel",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 312,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 537.7,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 0.08333333333333333,
+          "efficiency": 0.9,
+          "inverted": false
+        },
+        {
+          "name": "lift",
+          "profile": {
+            "id": "gobilda-5203-2402-0019",
+            "nominalVoltage": 12,
+            "freeSpeedRpm": 312,
+            "stallTorqueNm": 2.38301595,
+            "stallCurrentAmps": 9.2,
+            "freeCurrentAmps": 0.25,
+            "ticksPerRevolution": 537.7,
+            "rotorInertiaKgM2": 0.0012,
+            "source": "https://www.gobilda.com/content/spec_sheets/5203-2402-0019_spec_sheet.pdf"
+          },
+          "reduction": 2,
+          "efficiency": 0.9,
+          "inverted": false
+        }
+      ],
+      "wheels": [
+        {
+          "motor": "frontLeft",
+          "mount": {
+            "x": 0.155,
+            "y": -0.03,
+            "z": -0.17
+          },
+          "tractionAngle": -0.7853981633974483,
+          "radius": 0.048,
+          "grip": 0.85,
+          "rollerGrip": 0.035,
+          "inertiaKgM2": 0.00035,
+          "suspensionTravel": 0.028,
+          "springNPerM": 12000,
+          "damperNsPerM": 130
+        },
+        {
+          "motor": "frontRight",
+          "mount": {
+            "x": 0.155,
+            "y": -0.03,
+            "z": 0.17
+          },
+          "tractionAngle": 0.7853981633974483,
+          "radius": 0.048,
+          "grip": 0.85,
+          "rollerGrip": 0.035,
+          "inertiaKgM2": 0.00035,
+          "suspensionTravel": 0.028,
+          "springNPerM": 12000,
+          "damperNsPerM": 130
+        },
+        {
+          "motor": "backLeft",
+          "mount": {
+            "x": -0.155,
+            "y": -0.03,
+            "z": -0.17
+          },
+          "tractionAngle": 0.7853981633974483,
+          "radius": 0.048,
+          "grip": 0.85,
+          "rollerGrip": 0.035,
+          "inertiaKgM2": 0.00035,
+          "suspensionTravel": 0.028,
+          "springNPerM": 12000,
+          "damperNsPerM": 130
+        },
+        {
+          "motor": "backRight",
+          "mount": {
+            "x": -0.155,
+            "y": -0.03,
+            "z": 0.17
+          },
+          "tractionAngle": -0.7853981633974483,
+          "radius": 0.048,
+          "grip": 0.85,
+          "rollerGrip": 0.035,
+          "inertiaKgM2": 0.00035,
+          "suspensionTravel": 0.028,
+          "springNPerM": 12000,
+          "damperNsPerM": 130
+        }
+      ],
+      "servos": [
+        {
+          "name": "hood",
+          "mount": {
+            "x": -0.06,
+            "y": 0.26,
+            "z": 0
+          },
+          "minRadians": 0.2617993877991494,
+          "maxRadians": 1.3089969389957472,
+          "speedRadiansPerSecond": 5.235987755982988,
+          "torqueNm": 2.1182364000000002,
+          "inertiaKgM2": 0.004,
+          "source": "https://www.gobilda.com/2000-series-dual-mode-servo-25-2-torque/"
+        },
+        {
+          "name": "release",
+          "mount": {
+            "x": 0.17,
+            "y": 0.2,
+            "z": 0
+          },
+          "minRadians": 0,
+          "maxRadians": 1.5707963267948966,
+          "speedRadiansPerSecond": 5.235987755982988,
+          "torqueNm": 2.1182364000000002,
+          "inertiaKgM2": 0.004,
+          "source": "https://www.gobilda.com/2000-series-dual-mode-servo-25-2-torque/"
+        },
+        {
+          "name": "gate",
+          "mount": {
+            "x": 0,
+            "y": 0.01,
+            "z": 0
+          },
+          "minRadians": 0,
+          "maxRadians": 1.5707963267948966,
+          "speedRadiansPerSecond": 5.235987755982988,
+          "torqueNm": 2.1182364000000002,
+          "inertiaKgM2": 0.004,
+          "source": "https://www.gobilda.com/2000-series-dual-mode-servo-25-2-torque/"
+        }
+      ],
+      "sensors": [
+        {
+          "name": "beam_break",
+          "kind": "digital",
+          "mount": {
+            "position": {
+              "x": 0.06,
+              "y": 0.015,
+              "z": -0.045
+            },
+            "rotation": {
+              "x": 0,
+              "y": -0.7071067811865476,
+              "z": 0,
+              "w": 0.7071067811865476
+            }
+          },
+          "maximumRange": 0.09,
+          "noise": 0,
+          "latencyMs": 0
+        },
+        {
+          "name": "distance",
+          "kind": "distance",
+          "mount": {
+            "position": {
+              "x": 0.225,
+              "y": 0.04,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "maximumRange": 2,
+          "noise": 0.002,
+          "latencyMs": 20
+        },
+        {
+          "name": "color",
+          "kind": "color",
+          "mount": {
+            "position": {
+              "x": 0.06,
+              "y": 0.015,
+              "z": -0.045
+            },
+            "rotation": {
+              "x": 0,
+              "y": -0.7071067811865476,
+              "z": 0,
+              "w": 0.7071067811865476
+            }
+          },
+          "maximumRange": 0.1,
+          "noise": 0.01,
+          "latencyMs": 20
+        },
+        {
+          "name": "lift_encoder",
+          "kind": "analog",
+          "mount": {
+            "position": {
+              "x": 0.17,
+              "y": 0.1,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "maximumRange": 3.3,
+          "noise": 0,
+          "latencyMs": 0
+        },
+        {
+          "name": "pinpoint",
+          "kind": "pinpoint",
+          "mount": {
+            "position": {
+              "x": -0.00302704,
+              "y": 0.0006581099999999999,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0,
+              "w": 1
+            }
+          },
+          "maximumRange": 10,
+          "noise": 0.0002,
+          "latencyMs": 0
+        }
+      ],
+      "cameras": [
+        {
+          "name": "Webcam 1",
+          "mount": {
+            "position": {
+              "x": 0.12,
+              "y": 0.25,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": 0.25881904510252074,
+              "w": 0.9659258262890683
+            }
+          },
+          "horizontalFovRadians": 1.5707963267948966,
+          "verticalFovRadians": 1.0471975511965976,
+          "maximumRange": 4,
+          "latencyMs": 80,
+          "framesPerSecond": 30,
+          "positionNoiseMeters": 0.005,
+          "angleNoiseRadians": 0.01
+        },
+        {
+          "name": "Intake camera",
+          "mount": {
+            "position": {
+              "x": 0.16,
+              "y": 0.1,
+              "z": 0
+            },
+            "rotation": {
+              "x": 0,
+              "y": 0,
+              "z": -0.25881904510252074,
+              "w": 0.9659258262890683
+            }
+          },
+          "horizontalFovRadians": 1.5707963267948966,
+          "verticalFovRadians": 1.5707963267948966,
+          "maximumRange": 2,
+          "latencyMs": 80,
+          "framesPerSecond": 30,
+          "positionNoiseMeters": 0.005,
+          "angleNoiseRadians": 0.01
+        }
+      ],
+      "mechanisms": {
+        "intake": {
+          "motor": "intake",
+          "mount": {
+            "x": 0.2,
+            "y": -0.045,
+            "z": 0.012
+          },
+          "width": 0.31,
+          "radius": 0.035,
+          "complianceNPerM": 600
+        },
+        "feeder": {
+          "motor": "intake",
+          "reduction": 2,
+          "speedMetersPerSecond": 0.6,
+          "grip": 0.8
+        },
+        "storage": {
+          "mount": {
+            "x": 0,
+            "y": -0.01,
+            "z": 0
+          },
+          "width": 0.105,
+          "length": 0.36,
+          "capacity": 4
+        },
+        "shooter": {
+          "motor": "flywheel",
+          "mount": {
+            "x": -0.09,
+            "y": 0.24,
+            "z": 0
+          },
+          "wheelRadius": 0.05,
+          "inertiaKgM2": 0.0012,
+          "compression": 0.006,
+          "turretMotor": "turret",
+          "turretInertiaKgM2": 0.012,
+          "hoodServo": "hood"
+        },
+        "lift": {
+          "motor": "lift",
+          "mount": {
+            "x": 0.17,
+            "y": -0.063,
+            "z": 0
+          },
+          "axis": {
+            "x": 0.25,
+            "y": 0.9682458365518543,
+            "z": 0
+          },
+          "spoolRadius": 0.018,
+          "maximumTravel": 0.61,
+          "carriageMassKg": 0.6,
+          "releaseServo": "release"
+        },
+        "gate": {
+          "servo": "gate",
+          "rejectionThreshold": 0.65
+        }
+      },
+      "battery": {
+        "openCircuitVoltage": 12.8,
+        "internalResistanceOhms": 0.045,
+        "maximumCurrentAmps": 40
+      }
+    },
+    "servoPorts": [
+      {
+        "id": "servo-hood",
+        "hardwareMapName": "hood",
+        "controllerId": "control-hub",
+        "port": 0
+      },
+      {
+        "id": "servo-release",
+        "hardwareMapName": "release",
+        "controllerId": "control-hub",
+        "port": 1
+      },
+      {
+        "id": "servo-gate",
+        "hardwareMapName": "gate",
+        "controllerId": "control-hub",
+        "port": 2
+      }
+    ],
+    "sensorPorts": [
+      {
+        "id": "sensor-beam_break",
+        "hardwareMapName": "beam_break",
+        "kind": "digital",
+        "controllerId": "control-hub",
+        "port": 0
+      },
+      {
+        "id": "sensor-distance",
+        "hardwareMapName": "distance",
+        "kind": "distance",
+        "controllerId": "control-hub",
+        "port": 0
+      },
+      {
+        "id": "sensor-color",
+        "hardwareMapName": "color",
+        "kind": "color",
+        "controllerId": "control-hub",
+        "port": 1
+      },
+      {
+        "id": "sensor-lift_encoder",
+        "hardwareMapName": "lift_encoder",
+        "kind": "analog",
+        "controllerId": "control-hub",
+        "port": 0
+      },
+      {
+        "id": "sensor-odo",
+        "hardwareMapName": "pinpoint",
+        "kind": "pinpoint",
+        "controllerId": "expansion-hub-2",
+        "port": 3
+      }
+    ]
+  }
+}
