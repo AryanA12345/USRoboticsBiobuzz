@@ -1,31 +1,20 @@
-/**
- * Top-level build file for ftc_app project.
- *
- * It is extraordinarily rare that you will ever need to edit this file.
- */
-
 buildscript {
     repositories {
-        mavenCentral()
         google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:${androidGradlePluginVersion}"
     }
 }
 
-plugins {
-    // Note for FTC Teams: Do not modify this yourself.
-    id 'com.android.application' version '9.1.1' apply false
-    id 'com.android.library' version '9.1.1' apply false
-}
-
-// This is now required because aapt2 has to be downloaded from the
-// google() repository beginning with version 3.2 of the Android Gradle Plugin
 allprojects {
     repositories {
-        mavenCentral()
         google()
+        mavenCentral()
     }
 }
 
-repositories {
-    mavenCentral()
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
 }
