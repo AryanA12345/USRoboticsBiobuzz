@@ -139,7 +139,7 @@ public class ExampleTeleOpAgarwal extends OpMode {
 
         }
         if (gamepad1.dpadUpWasPressed()){  // If Connor forgets how many times he's pressed dpaddown or
-                                           // accidently presses it multiple times (I'm sure he will),
+                                           // accidently presses it multiple times
                                            // this is used as a failsafe to set to default
             hiveIsRight = true;
 
