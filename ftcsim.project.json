@@ -1,7 +1,7 @@
 {
   "schemaVersion": 3,
   "name": "MyFTCProject",
-  "sdkVersion": "11.1.0",
+  "sdkVersion": "12.0.0",
   "kotlinVersion": "2.2.10",
   "javaBytecodeTarget": 8,
   "package": "org.firstinspires.ftc.teamcode",
@@ -700,5 +700,27 @@
         "port": 3
       }
     ]
+  },
+  "playSettings": {
+    "keyboard": {
+      "forward": "KeyW",
+      "backward": "KeyS",
+      "left": "KeyA",
+      "right": "KeyD",
+      "turnLeft": "KeyQ",
+      "turnRight": "KeyE",
+      "dpadUp": "ArrowUp",
+      "dpadDown": "ArrowDown",
+      "dpadLeft": "ArrowLeft",
+      "dpadRight": "ArrowRight",
+      "a": "Space",
+      "b": "KeyB",
+      "x": "KeyX",
+      "y": "KeyY",
+      "leftTrigger": "KeyF",
+      "rightTrigger": "KeyR",
+      "leftBumper": "KeyZ",
+      "rightBumper": "KeyC"
+    }
   }
 }
