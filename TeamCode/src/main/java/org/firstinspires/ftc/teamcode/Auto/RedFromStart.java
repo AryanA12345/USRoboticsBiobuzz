@@ -209,8 +209,8 @@ public class RedFromStart extends LinearOpMode {
 
     // Renamed 'path1' to 'path1Pose' to avoid method namespace collision
     private final Pose start = poseFactory.of(8.6308, 32.2741, 0);
-    private final Pose path1Pose = poseFactory.of(58.4486, 13.065, 90);
-    private final Pose path1Control1 = poseFactory.of(7.87761506276151, 15.148535564853566, 0);
+    private final Pose path1 = poseFactory.of(58.4486, 13.065, 90);
+private final Pose path1Control1 = poseFactory.of(45.9211, 26.9174, 0);
     private final Pose point2 = poseFactory.of(59.994, 132.1856, -93.9874);
     private final Pose point2Control1 = poseFactory.of(64.7338, 64.4955, 0);
     private final Pose point2Segment1Target = poseFactory.of(58.2686, 84.79, 0);
@@ -234,7 +234,7 @@ public class RedFromStart extends LinearOpMode {
         // --- 2. SECOND COMBINATION ---
         // Delays intake action by 500ms after path2 begins
         Command waitTimedIntake2 = sequential(
-            waitMs(500),
+            //waitMs(500),
             instant(() -> intake.setPower(1.0)), 
             waitMs(800),
             instant(() -> intake.setPower(0.0))
@@ -265,7 +265,10 @@ public class RedFromStart extends LinearOpMode {
             shootSequence(flywheel, intake),
 
             // Final push to the finish line
-            follow(follower, path3())
+            instant(() -> {
+                schedule(follow(follower, path3()));
+                schedule(waitTimedIntake2);
+            })
         );
     }
 
@@ -290,7 +293,8 @@ public class RedFromStart extends LinearOpMode {
             instant(() -> {
                 flywheel.setPower(0.0);
                 intake.setPower(0.0);
-            })
+            }),
+            waitMs(1000)
         );
     }
 
@@ -339,10 +343,11 @@ public class RedFromStart extends LinearOpMode {
             }
             telemetry.update();
         }
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
-        return Paths.curve(start, path1Control1, path1Pose).linear(start, path1Pose);
+        return Paths.curve(start, path1Control1, path1).linear(start, path1);
     }
 
     public Path path2() {
