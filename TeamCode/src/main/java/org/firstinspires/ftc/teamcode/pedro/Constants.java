@@ -64,6 +64,31 @@ public class Constants {
                 c.naturalStrafeDeceleration.set(79.67230601197282);
             }
     );
+//    public static ForesightConfig foresightConfig = new ForesightConfig(
+//            c -> {
+//                Controller primaryTranslationalForward = Controller.proportional(0.7969506825497126);
+//                Controller secondaryTranslationalForward = Controller.proportional(0.29445198228768704);
+//                Controller primaryTranslationalLateral = Controller.proportional(0.18051625729118727);
+//                Controller secondaryTranslationalLateral = Controller.proportional(0.14059058948743985);
+//
+//                c.forwardTranslational.set(Controller.piecewise(secondaryTranslationalForward).put(2.5, primaryTranslationalForward));
+//                c.strafeTranslational.set(Controller.piecewise(secondaryTranslationalLateral).put(2.5, primaryTranslationalLateral));
+//
+//                c.coast.set(Controller.proportionalFeedforward(0.01373095280130505));
+//                c.brake.set(Controller.proportionalFeedforward(0.011671309881109291));
+//
+//                c.headingFeedback.set(Controller.proportional(23.98303703525768));
+//                c.headingBrakeCoefficients.set(Vector2D.cartesian(0.10521616552800547, 0.016487278732422263));
+//
+//                c.linearBrakeCoefficients.set(Matrix.diag(0.14564102175429305, 0.05935315192144766));
+//                c.quadraticBrakeCoefficients.set(Matrix.diag(0.0031120384307696185, 0.002901283430438488));
+//
+//                c.maxAchievableForwardVelocity.set(54.29135130936572);
+//                c.maxAchievableStrafeVelocity.set(39.39520933929602);
+//                c.naturalForwardDeceleration.set(37.62050812419055);
+//                c.naturalStrafeDeceleration.set(74.80456244314877);
+//            }
+//    );
 
 
     public static Follower create(HardwareMap h) {
