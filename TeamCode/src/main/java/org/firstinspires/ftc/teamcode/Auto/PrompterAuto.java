@@ -39,7 +39,7 @@ import java.util.EnumMap;
 public class PrompterAuto extends LinearOpMode {
 
     private Follower follower;
-    private Prompter prompter = new Prompter(this);
+    private Prompter prompter;// = new Prompter(this);
     private int launchP = ShooterConstants.launchP;
     private int launchN = ShooterConstants.launchN;
 
@@ -226,6 +226,7 @@ public class PrompterAuto extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
+        prompter = new Prompter(this);
         initPoints();
         prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED, Team.BLUE))
                 .prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 15.0, 0.0, 1.0))
