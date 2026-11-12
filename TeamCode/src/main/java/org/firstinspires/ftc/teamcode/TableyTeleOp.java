@@ -185,22 +185,32 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import static com.pedropathing.api.Paths.*;
+
+import com.pedropathing.api.Paths;
+import com.pedropathing.api.PoseFactory;
+import com.pedropathing.math.Pose;
+import com.pedropathing.paths.Path;
+import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
-import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@TeleOp(name = "Example TeleOpWSim")
+@TeleOp(name = "Tabley TeleOp")
 public class TableyTeleOp extends LinearOpMode {
 
+    private int launchP = ShooterConstants.launchP;
+    private int launchN = ShooterConstants.launchN;
     private Follower follower;
     Pose waypoint = null;
 
@@ -229,7 +239,7 @@ public class TableyTeleOp extends LinearOpMode {
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(15.0, 3.0, 0.0, 12.5);
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 0.0, 1.0, 12.5);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
@@ -262,12 +272,19 @@ public class TableyTeleOp extends LinearOpMode {
 
         while (opModeIsActive()) {
             double speed = 1.0;
-            ManualDrive.driveOrHold(
+            DrivePowers powers = ManualDrive.fieldCentric(
+                    -gamepad1.left_stick_y,
+                    -gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x,
+                    follower.pose().heading()
+            );
+            /*ManualDrive.driveOrHold(
                     follower,
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x
-            );
+            );*/
+            ManualDrive.driveOrHold(follower, powers);
 
             //ManualDrive.driveOrHold(follower, powers);
             follower.update();
@@ -286,13 +303,13 @@ public class TableyTeleOp extends LinearOpMode {
                     // Keep release servos closed at 0 degrees during idle
                     releaseN.setPosition(1.0);
                     releaseP.setPosition(0.0);
-                    flywheelN.setVelocity(1500);
-                    flywheelP.setVelocity(1300);
+                    flywheelN.setVelocity(launchN);
+                    flywheelP.setVelocity(launchP);
 
                     if (currentRightBumper && !lastRightBumper) {
                         stabilityTimer.reset();
-                        flywheelN.setVelocity(1500);
-                        flywheelP.setVelocity(1300);
+                        flywheelN.setVelocity(launchN);
+                        flywheelP.setVelocity(launchP);
                         currentShootState = ShootState.WAIT_FOR_FLY_STABLE;
                     }
                     break;
@@ -300,8 +317,8 @@ public class TableyTeleOp extends LinearOpMode {
                 case WAIT_FOR_FLY_STABLE:
                     double currentVelocityN = flywheelN.getVelocity();
                     double currentVelocityP = flywheelP.getVelocity();
-                    double errorN = Math.abs(1500 - currentVelocityN);
-                    double errorP = Math.abs(1300 - currentVelocityP);
+                    double errorN = Math.abs(launchN - currentVelocityN);
+                    double errorP = Math.abs(launchP - currentVelocityP);
 
                     if (errorN > 20 || errorP > 20) {
                         stabilityTimer.reset(); // Wait for recovery if recovering from a previous shot
