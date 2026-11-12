@@ -206,8 +206,8 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@TeleOp(name = "Example TeleOpWSim")
-public class TeleOpFromSim extends LinearOpMode {
+@TeleOp(name = "Tabley TeleOp")
+public class TableyTeleOp extends LinearOpMode {
 
     private int launchP = ShooterConstants.launchP;
     private int launchN = ShooterConstants.launchN;
@@ -239,7 +239,7 @@ public class TeleOpFromSim extends LinearOpMode {
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(15.0, 3.0, 0.0, 12.5);
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 0.0, 1.0, 12.5);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
