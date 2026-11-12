@@ -239,7 +239,7 @@ public class TableyTeleOp extends LinearOpMode {
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 0.0, 1.0, 12.5);
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 3.0, 0.0, 12.5);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
@@ -319,8 +319,11 @@ public class TableyTeleOp extends LinearOpMode {
                     double currentVelocityP = flywheelP.getVelocity();
                     double errorN = Math.abs(launchN - currentVelocityN);
                     double errorP = Math.abs(launchP - currentVelocityP);
+                    telemetry.addLine("errorP: " + errorP);
+                    telemetry.addLine("errorN: " + errorN);
+                    telemetry.addLine("stabilityTimer: " + stabilityTimer.milliseconds());
 
-                    if (errorN > 20 || errorP > 20) {
+                    if (/*errorN > 40 || */errorP > 40) {
                         stabilityTimer.reset(); // Wait for recovery if recovering from a previous shot
                     }
 
@@ -331,7 +334,7 @@ public class TableyTeleOp extends LinearOpMode {
                     break;
 
                 case RUN_INTAKE:
-                    if (shootTimer.milliseconds() < 2000) {
+                    if (shootTimer.milliseconds() < 5000) {
                         //intake.setPower(1.0);
                         // Open release servos to 90 degrees (0.5 on standard 180° servos)
                         releaseN.setPosition(0.0);
@@ -340,8 +343,8 @@ public class TableyTeleOp extends LinearOpMode {
                         //intake.setPower(0.0); // Shut off intake
                         releaseN.setPosition(1.0); // Return release servos to 0 degrees
                         releaseP.setPosition(0.0);
-                        flywheelN.setVelocity(0.0);
-                        flywheelP.setVelocity(0.0);
+                        //flywheelN.setVelocity(0.0);
+                        //flywheelP.setVelocity(0.0);
                         shootTimer.reset();
                         currentShootState = ShootState.COOLDOWN;
                     }
@@ -378,7 +381,7 @@ public class TableyTeleOp extends LinearOpMode {
             //turret.setPower(turretLeft == turretRight ? 0.0 : (turretLeft ? 0.35 : -0.35));
 
             //hood.setPosition(gamepad1.left_bumper ? 0.2 : 0.5);
-            //gate.setPosition(gamepad1.b ? 1.0 : 0.0);
+            //releaseP.setPosition(gamepad1.left_bumper ? 1.0 : 0.0); //@TODO fix so that we can get manual control on release servo
 
             //double turretRevolutions = turret.getCurrentPosition() / (537.7 * 5.0);
             //double turretPosition = ((turretRevolutions % 1.0) + 1.0) % 1.0;

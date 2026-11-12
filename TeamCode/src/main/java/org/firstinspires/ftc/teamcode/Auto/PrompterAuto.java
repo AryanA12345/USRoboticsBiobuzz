@@ -80,8 +80,8 @@ public class PrompterAuto extends LinearOpMode {
         point2.put(Team.RED, poseFactory.of(59.994, 132.1856, -93.9874));
         point2.put(Team.BLUE, poseFactory.of(83.3403, 29.0562, -89.8794));
 
-        point2Control1.put(Team.RED, poseFactory.of(64.7338, 64.4955, 0));
-        point2Control1.put(Team.BLUE, poseFactory.of(63.9146, 75.6564, 0));
+        point2Control1.put(Team.RED, poseFactory.of(95.0, 65.4955, 0));
+        point2Control1.put(Team.BLUE, poseFactory.of(44.9146, 69.6564, 0));
 
         point2Segment1Target.put(Team.RED, poseFactory.of(58.2686, 84.79, 0));
         point2Segment1Target.put(Team.BLUE, poseFactory.of(83.2314, 80.79, 0));
@@ -204,7 +204,7 @@ public class PrompterAuto extends LinearOpMode {
                     double errorP = Math.abs(launchP - flywheelP.getVelocity());
 
                     // If either velocity strays outside our tolerance band, reset the window timer
-                    if (errorN > 20 || errorP > 20) {
+                    if (/*errorN > 20 || */errorP > 20) {
                         stabilityTimer.reset();
                     }
                 })
@@ -242,9 +242,9 @@ public class PrompterAuto extends LinearOpMode {
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
         // --- VELOCITY CONTROLLER OPTIMIZATION TUNING ---
-        double P = 8.0;
-        double I = 0.0;
-        double D = 1.0;
+        double P = 5.0;
+        double I = 3.0;
+        double D = 0.0;
         double F = 12.5;
 
         PIDFCoefficients fastCoefficients = new PIDFCoefficients(P, I, D, F);
@@ -265,7 +265,7 @@ public class PrompterAuto extends LinearOpMode {
         follower.update();
         while (!isStarted() && !isStopRequested()) {
             prompter.run();
-            if (team == Team.RED) {
+            /*if (team == Team.RED) {
                 telemetry.addLine("     +---\\/-----------------+");
                 telemetry.addLine("     |                      |");
                 telemetry.addLine("     |                      |");
@@ -287,7 +287,7 @@ public class PrompterAuto extends LinearOpMode {
                 telemetry.addLine("+-----------------/\\----+     ");
 
 
-            }
+            }*/
         }
 
         // Once start is pressed and the loop exits, safety-check or set your pose:
