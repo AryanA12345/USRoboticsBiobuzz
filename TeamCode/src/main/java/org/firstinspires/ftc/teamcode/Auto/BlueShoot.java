@@ -249,21 +249,21 @@ import com.pedropathing.ivy.behaviors.EndCondition;
 import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-@Autonomous(name = "SimRedShoot", group = "Autonomous")
-public class RedShootFromSim extends LinearOpMode {
+@Autonomous(name = "BlueShoot", group = "Autonomous")
+public class BlueShoot extends LinearOpMode {
 
     private Follower follower;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose start = poseFactory.of(8.6308, 32.2741, 0);
-    private final Pose path1 = poseFactory.of(58.4486, 13.065, 90);
-    private final Pose path1Control1 = poseFactory.of(45.9211, 26.9174, 0);
-    private final Pose point2 = poseFactory.of(59.994, 132.1856, -93.9874);
-    private final Pose point2Control1 = poseFactory.of(64.7338, 64.4955, 0);
-    private final Pose point2Segment1Target = poseFactory.of(58.2686, 84.79, 0);
-    private final Pose point3 = poseFactory.of(9.4482, 95.975, -1.6702);
-    private final Pose point3Control1 = poseFactory.of(58.4443, 94.356, 0);
+    private final Pose start = poseFactory.of(132.9268, 107.869, 180);
+    private final Pose path1 = poseFactory.of(83.5642, 112.3938, 90);
+    private final Pose path1Control1 = poseFactory.of(98.9682, 105.628, 0);
+    private final Pose point2 = poseFactory.of(83.3403, 29.0562, -89.8794);
+    private final Pose point2Control1 = poseFactory.of(63.9146, 75.6564, 0);
+    private final Pose point2Segment1Target = poseFactory.of(83.2314, 80.79, 0);
+    private final Pose point3 = poseFactory.of(129.244, 31.6238, 33.2046);
+    private final Pose point3Control1 = poseFactory.of(109.4303, 18.6557, 0);
 
     /**
      * Master autonomous routing logic utilizing Ivy Scheduler parallelism.
@@ -292,13 +292,12 @@ public class RedShootFromSim extends LinearOpMode {
                     flywheelN.setVelocity(1650);
                     flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     flywheelP.setVelocity(1300);
-
                 }),
 
                 // Fire off Path 1 and Intake 1 simultaneously using the scheduler
                 instant(() -> {
                     schedule(follow(follower, path1()));
-                    //schedule(timedIntake1);
+                    schedule(timedIntake1);
                 }),
                 follow(follower, path1()),
 
@@ -371,7 +370,7 @@ public class RedShootFromSim extends LinearOpMode {
                 .setStart(stabilityTimer::reset)
                 .setExecute(() -> {
                     double errorN = Math.abs(1650 - flywheelN.getVelocity());
-                    double errorP = Math.abs(1300 - flywheelP.getVelocity());
+                    double errorP = Math.abs(1650 - flywheelP.getVelocity());
 
                     // If either velocity strays outside our tolerance band, reset the window timer
                     if (errorN > 20 || errorP > 20) {

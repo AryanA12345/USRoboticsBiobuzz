@@ -7,6 +7,7 @@ package org.firstinspires.ftc.teamcode.Auto;
 import com.pedropathing.follower.Follower; // Update this import to match your Pedro Pathing package if needed
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
+
 public class AutoTelemetry {
     private final Follower follower; // Or whatever your follower type is (e.g., Follower)
     private final Telemetry telemetry;

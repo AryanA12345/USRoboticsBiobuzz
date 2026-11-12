@@ -183,14 +183,9 @@
 //    }
 //}
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
-import static com.pedropathing.api.Paths.*;
-
-import com.pedropathing.api.Paths;
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
@@ -198,12 +193,12 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.skeletonarmy.marrow.prompts.Prompter;
 
+import org.firstinspires.ftc.teamcode.OpModeStorage;
+import org.firstinspires.ftc.teamcode.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name = "Tabley TeleOp")
@@ -239,7 +234,7 @@ public class TableyTeleOp extends LinearOpMode {
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 3.0, 0.0, 12.5);
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 

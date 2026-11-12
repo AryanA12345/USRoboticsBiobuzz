@@ -2,11 +2,12 @@
  * TargetAndMoveOpMode with Neural Detector, Non-Blocking State Machine,
  * Submersible Avoidance, Bottom-Right Field Origin (144,0), and Pedro Pathing v3.0.0.
  */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.List;
 
+@Disabled
 @TeleOp(name = "ImprovedAITeleop", group = "Vision")
 public class ImprovedAITeleop extends LinearOpMode {
 

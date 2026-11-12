@@ -2,27 +2,22 @@
  * Field-centric teleop with waypoint functionality and position holding
  * Updated on 10/11/2026
  */
-package org.firstinspires.ftc.teamcode;
-
-import static com.pedropathing.api.Paths.*;
+package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 
 import com.pedropathing.api.Paths;
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
 
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
-import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-
+@Disabled
 @TeleOp(name = "Example TeleOp")
 public class ExampleTeleOp extends OpMode {
 

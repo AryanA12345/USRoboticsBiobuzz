@@ -1,12 +1,7 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
-import static com.pedropathing.api.Paths.*;
-
-import com.pedropathing.api.Paths;
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.controllers.PIDController;
 import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
@@ -18,6 +13,8 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.OpModeStorage;
+import org.firstinspires.ftc.teamcode.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name = "Tabley TeleOp TestA")
@@ -65,7 +62,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(8.0, 0.0, 1.0, 12.5);
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
@@ -173,7 +170,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                     double errorN = Math.abs(launchN - currentVelocityN);
                     double errorP = Math.abs(launchP - currentVelocityP);
 
-                    if (errorN > 20 || errorP > 20) {
+                    if (/*errorN > 20 || */errorP > 20) { //@TODO when we get the nectar motor back up, modify this to actually work
                         stabilityTimer.reset(); // Wait for recovery if recovering from a previous shot
                     }
 
@@ -184,15 +181,15 @@ public class TableyTeleOpTestA extends LinearOpMode {
                     break;
 
                 case RUN_INTAKE:
-                    if (shootTimer.milliseconds() < 2000) {
+                    if (shootTimer.milliseconds() < 3000) {
                         // Open release servos
                         releaseN.setPosition(0.0);
                         releaseP.setPosition(1.0);
                     } else {
                         releaseN.setPosition(1.0); // Return release servos to 0 degrees
                         releaseP.setPosition(0.0);
-                        flywheelN.setVelocity(0.0);
-                        flywheelP.setVelocity(0.0);
+                        //flywheelN.setVelocity(0.0);
+                        //flywheelP.setVelocity(0.0);
                         shootTimer.reset();
                         currentShootState = ShootState.COOLDOWN;
                     }

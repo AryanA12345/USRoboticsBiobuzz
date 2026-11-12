@@ -17,14 +17,11 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.interpolator.Interpolator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.skeletonarmy.marrow.prompts.BooleanPrompt;
-import com.skeletonarmy.marrow.prompts.MessagePrompt;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
@@ -230,7 +227,7 @@ public class PrompterAuto extends LinearOpMode {
         initPoints();
         prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED, Team.BLUE))
                 .prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 15.0, 0.0, 1.0))
-                .prompt(new MessagePrompt("MAKE SURE ALL SYSTEMS ARE READY"))
+                //.prompt(new MessagePrompt("MAKE SURE ALL SYSTEMS ARE READY"))
                 .showSummary()
                 .onComplete(this::onPromptsComplete);
 
@@ -242,10 +239,10 @@ public class PrompterAuto extends LinearOpMode {
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
         // --- VELOCITY CONTROLLER OPTIMIZATION TUNING ---
-        double P = 5.0;
-        double I = 3.0;
-        double D = 0.0;
-        double F = 12.5;
+        double P = /*5.0*/ShooterConstants.P;
+        double I = /*3.0*/ShooterConstants.I;
+        double D = /*0.0*/ShooterConstants.D;
+        double F = /*12.5*/ShooterConstants.F;
 
         PIDFCoefficients fastCoefficients = new PIDFCoefficients(P, I, D, F);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);

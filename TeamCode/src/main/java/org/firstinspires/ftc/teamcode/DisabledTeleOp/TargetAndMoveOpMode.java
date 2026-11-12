@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -14,7 +15,7 @@ import com.pedropathing.math.Pose;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import java.util.List;
-
+@Disabled
 @TeleOp(name = "TargetAndMoveOpMode", group = "Vision")
 public class TargetAndMoveOpMode extends LinearOpMode {
 

@@ -2,29 +2,21 @@
  * TeleOp with ball finding functionality
  * Updated on 10/14/2026
  */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import static com.pedropathing.api.Paths.*;
-import com.pedropathing.api.Paths;
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
 
-import com.pedropathing.api.PoseFactory;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
-import com.pedropathing.math.Pose;
-import com.pedropathing.paths.Path;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-
+@Disabled
 @TeleOp(name = "Pollen Vision Test", group = "Vision")
 public class PollenVisionTest extends LinearOpMode {
     // Measure these on YOUR robot (Step 1)

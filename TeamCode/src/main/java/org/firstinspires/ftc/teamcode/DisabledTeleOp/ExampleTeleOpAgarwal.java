@@ -2,7 +2,7 @@
  * Field-centric teleop with waypoint functionality and position holding
  * Updated on 10/11/2026
  */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.controllers.PIDController;
@@ -10,13 +10,14 @@ import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
 import com.pedropathing.math.Pose;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.robotcore.internal.camera.delegating.DelegatingCaptureSequence;
+import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
-
+@Disabled
 @TeleOp(name = "ExampleTeleOpFixedHeadingTest")
 public class ExampleTeleOpAgarwal extends OpMode {
 
