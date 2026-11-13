@@ -82,9 +82,9 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
         flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelN.setVelocity(0);
+        flywheelN.setVelocity(launchN);
         flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelP.setVelocity(0);
+        flywheelP.setVelocity(launchP);
 
         while (opModeIsActive()) {
             double speed = 1.0;

@@ -29,6 +29,7 @@ import com.skeletonarmy.marrow.prompts.ValuePrompt;
 import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.teamcode.Launcher;
 
 import java.util.EnumMap;
 
@@ -36,6 +37,8 @@ import java.util.EnumMap;
 public class PrompterAuto extends LinearOpMode {
 
     private Follower follower;
+
+    private Launcher launcher;
     private Prompter prompter;// = new Prompter(this);
     private int launchP = ShooterConstants.launchP;
     private int launchN = ShooterConstants.launchN;
@@ -93,7 +96,7 @@ public class PrompterAuto extends LinearOpMode {
     /**
      * Master autonomous routing logic utilizing Ivy Scheduler parallelism.
      */
-    public Command autoRoutine(DcMotorEx flywheelN, DcMotorEx flywheelP, DcMotor intake, Servo releaseN, Servo releaseP) {
+    public Command autoRoutine(/*DcMotorEx flywheelN, DcMotorEx flywheelP, */DcMotor intake, Launcher launcher/*, Servo releaseN, Servo releaseP*/) {
 
         // --- 1. FIRST COMBINATION ---
         Command timedIntake1 = sequential(
@@ -113,13 +116,14 @@ public class PrompterAuto extends LinearOpMode {
         return sequential(
                 // Spin up both flywheels immediately at match start to run continuously
                 waitMs(delay*1000),
-                instant(() -> {
+                /*instant(() -> {
                     flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     flywheelN.setVelocity(launchN);
                     flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     flywheelP.setVelocity(launchP);
 
-                }),
+                })*/
+                instant(launcher::spinUp),
 
                 // Fire off Path 1 and Intake 1 simultaneously using the scheduler
                 instant(() -> {
@@ -129,7 +133,8 @@ public class PrompterAuto extends LinearOpMode {
                 follow(follower, path1()),
 
                 // Perform the first shooting station sequence at path1 endpoint
-                shootSequence(flywheelN, flywheelP, intake, releaseN, releaseP),
+                //shootSequence(flywheelN, flywheelP, intake, releaseN, releaseP),
+                launcher.getShootCommand(),
 
                 // Fire off Path 2 and Delayed Intake 2 simultaneously
                 instant(() -> {
@@ -139,7 +144,8 @@ public class PrompterAuto extends LinearOpMode {
                 follow(follower, path2()),
 
                 // Perform the second shooting station sequence at path2 endpoint
-                shootSequence(flywheelN, flywheelP, intake, releaseN, releaseP),
+                //shootSequence(flywheelN, flywheelP, intake, releaseN, releaseP),
+                launcher.getShootCommand(),
 
                 // Final push to the finish line
                 instant(() -> {
@@ -160,7 +166,7 @@ public class PrompterAuto extends LinearOpMode {
     /**
      * Handles the non-blocking velocity-driven shooting sequence with dual flywheels and release servos.
      */
-    public Command shootSequence(DcMotorEx flywheelN, DcMotorEx flywheelP, DcMotor intake, Servo releaseN, Servo releaseP) {
+    /*public Command shootSequence(DcMotorEx flywheelN, DcMotorEx flywheelP, DcMotor intake, Servo releaseN, Servo releaseP) {
         return sequential(
                 // 1. Wait dynamically until both flywheels hit steady velocity
                 waitForFlywheelStable(flywheelN, flywheelP),
@@ -185,13 +191,13 @@ public class PrompterAuto extends LinearOpMode {
                 // 5. Enforce a mandatory 3-second rest delay after shooting before triggering the next path
                 waitMs(3000)
         );
-    }
+    }*/
 
     /**
      * Custom Ivy command builder that holds execution until
      * both motor velocities remain stable within ±20 ticks of 1700 for 150ms.
      */
-    private Command waitForFlywheelStable(DcMotorEx flywheelN, DcMotorEx flywheelP) {
+    /*private Command waitForFlywheelStable(DcMotorEx flywheelN, DcMotorEx flywheelP) {
         ElapsedTime stabilityTimer = new ElapsedTime();
 
         return Command.build()
@@ -201,7 +207,7 @@ public class PrompterAuto extends LinearOpMode {
                     double errorP = Math.abs(launchP - flywheelP.getVelocity());
 
                     // If either velocity strays outside our tolerance band, reset the window timer
-                    if (/*errorN > 20 || */errorP > 20) {
+                    if (errorP > 20) {
                         stabilityTimer.reset();
                     }
                 })
@@ -209,7 +215,7 @@ public class PrompterAuto extends LinearOpMode {
                 .setEnd((EndCondition endCondition) -> {
                     // Leaves flywheels engaged
                 });
-    }
+    }*/
 
     public void onPromptsComplete() {
         team = prompter.get("alliance");
@@ -224,6 +230,7 @@ public class PrompterAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         prompter = new Prompter(this);
+        launcher = new Launcher(hardwareMap);
         initPoints();
         prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED, Team.BLUE))
                 .prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 15.0, 0.0, 1.0))
@@ -234,15 +241,15 @@ public class PrompterAuto extends LinearOpMode {
         // Hardware initialization
         follower = Constants.create(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-
+        /*
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
         // --- VELOCITY CONTROLLER OPTIMIZATION TUNING ---
-        double P = /*5.0*/ShooterConstants.P;
-        double I = /*3.0*/ShooterConstants.I;
-        double D = /*0.0*/ShooterConstants.D;
-        double F = /*12.5*/ShooterConstants.F;
+        double P = ShooterConstants.P;
+        double I = ShooterConstants.I;
+        double D = ShooterConstants.D;
+        double F = ShooterConstants.F;
 
         PIDFCoefficients fastCoefficients = new PIDFCoefficients(P, I, D, F);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
@@ -255,6 +262,7 @@ public class PrompterAuto extends LinearOpMode {
         //hood.setPosition(0.5);
         releaseN.setPosition(1.0);
         releaseP.setPosition(0.0);
+        */
 
         // Reset the Command Scheduler and establish starting location
         Scheduler.reset();
@@ -297,7 +305,7 @@ public class PrompterAuto extends LinearOpMode {
         waitForStart();
 
         // Pass your motors and servos directly into your master auto layout
-        schedule(autoRoutine(flywheelN, flywheelP, intake, releaseN, releaseP));
+        schedule(autoRoutine(intake, launcher/*flywheelN, flywheelP, intake, releaseN, releaseP*/));
 
         // Core execution loop: updates both the follower math and scheduled steps
         while (opModeIsActive()) {
@@ -308,8 +316,8 @@ public class PrompterAuto extends LinearOpMode {
             telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
             telemetry.addData("heading", follower.pose().heading());
-            telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
-            telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
+            telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
+            telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
 
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());

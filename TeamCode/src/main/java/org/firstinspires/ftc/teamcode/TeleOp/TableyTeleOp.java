@@ -199,10 +199,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.ShooterConstants;
+import org.firstinspires.ftc.teamcode.Launcher;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name = "Tabley TeleOp")
 public class TableyTeleOp extends LinearOpMode {
+
+    private Launcher launcher;
 
     private int launchP = ShooterConstants.launchP;
     private int launchN = ShooterConstants.launchN;
@@ -227,8 +230,9 @@ public class TableyTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         follower = Constants.create(hardwareMap);
+        launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-
+        /*
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
         flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
@@ -237,12 +241,17 @@ public class TableyTeleOp extends LinearOpMode {
         PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
         flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
         flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+         */
 
         //DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
         //DcMotor turret = hardwareMap.get(DcMotor.class, "turret");
         //Servo hood = hardwareMap.get(Servo.class, "hood");
+        /*
         Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
+
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
+
+         */
         //Servo gate = hardwareMap.get(Servo.class, "gate");
 
         //lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -250,20 +259,25 @@ public class TableyTeleOp extends LinearOpMode {
         //turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //hood.setPosition(0.5);
+        /*
         releaseN.setPosition(1.0); // 0 degrees
         releaseP.setPosition(0.0); // 0 degrees
+
+         */
         //gate.setPosition(0.0);
 
         waitForStart();
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
-
+        /*
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
         flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheelN.setVelocity(0);
         flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheelP.setVelocity(0);
+
+         */
 
         while (opModeIsActive()) {
             double speed = 1.0;
@@ -291,8 +305,12 @@ public class TableyTeleOp extends LinearOpMode {
             telemetry.addData("waypoint", waypoint);
 
             boolean currentRightBumper = gamepad1.right_bumper;
+            boolean triggerShoot = (currentRightBumper && !lastRightBumper);
+
+            launcher.update(triggerShoot);
 
             // --- NON-BLOCKING AUTOMATED SHOOT SEQUENCE ---
+           /*
             switch (currentShootState) {
                 case IDLE:
                     // Keep release servos closed at 0 degrees during idle
@@ -318,7 +336,7 @@ public class TableyTeleOp extends LinearOpMode {
                     telemetry.addLine("errorN: " + errorN);
                     telemetry.addLine("stabilityTimer: " + stabilityTimer.milliseconds());
 
-                    if (/*errorN > 40 || */errorP > 40) {
+                    if (errorP > 40) {
                         stabilityTimer.reset(); // Wait for recovery if recovering from a previous shot
                     }
 
@@ -351,21 +369,24 @@ public class TableyTeleOp extends LinearOpMode {
                     }
                     break;
             }
+            */
 
             lastRightBumper = currentRightBumper;
 
             // --- MANUAL MECHANISM CONTROLS ---
-            if (currentShootState != ShootState.RUN_INTAKE) {
+            //if (currentShootState != ShootState.RUN_INTAKE) {
                 intake.setPower((gamepad1.b || gamepad1.x) ? -1.0 : (gamepad1.a ? 1.0 : gamepad1.left_trigger));
-            }
+            //}
 
             // Safety Check: Force both flywheel velocity back to target if encoder modes get mismatched
-            if (flywheelN.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+            /*if (flywheelN.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
                 flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
             if (flywheelP.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
                 flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
+
+             */
             //flywheelN.setVelocity(0.0);
             //flywheelP.setVelocity(0.0);
 
@@ -382,16 +403,16 @@ public class TableyTeleOp extends LinearOpMode {
             //double turretPosition = ((turretRevolutions % 1.0) + 1.0) % 1.0;
 
             // Diagnostic Telemetry Monitoring
-            telemetry.addData("Shoot State", currentShootState);
-            telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
-            telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
+            telemetry.addData("Shoot State", launcher.getCurrentState());
+            telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
+            telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
             //telemetry.addData("Turret", "%.1f° (%.3f rev)", turretPosition * 360.0, turretPosition);
             //telemetry.addData("Speed", "%.0f%%", speed * 100.0);
             telemetry.update();
         }
 
         // Safeguard to shut down motors safely when the match ends
-        flywheelN.setVelocity(0);
-        flywheelP.setVelocity(0);
+        //flywheelN.setVelocity(0);
+        //flywheelP.setVelocity(0);
     }
 }
