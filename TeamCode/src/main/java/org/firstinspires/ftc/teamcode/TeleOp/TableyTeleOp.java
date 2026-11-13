@@ -407,6 +407,11 @@ public class TableyTeleOp extends LinearOpMode {
             telemetry.addData("Shoot State", launcher.getCurrentState());
             telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
             telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
+            telemetry.addData("P", ShooterConstants.P);
+            telemetry.addData("I", ShooterConstants.I);
+            telemetry.addData("D", ShooterConstants.D);
+            telemetry.addData("F", ShooterConstants.F);
+
             //telemetry.addData("Turret", "%.1f° (%.3f rev)", turretPosition * 360.0, turretPosition);
             //telemetry.addData("Speed", "%.0f%%", speed * 100.0);
             telemetry.update();

@@ -6,6 +6,8 @@ import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -76,6 +78,14 @@ public class Launcher {
     // ==========================================
     public void update(boolean triggerShoot) {
         spinUp(); // Keep flywheels active
+        PIDFCoefficients fastCoefficients = new PIDFCoefficients(
+                ShooterConstants.P,
+                ShooterConstants.I,
+                ShooterConstants.D,
+                ShooterConstants.F
+        );
+        flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+        flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
         switch (currentShootState) {
             case IDLE:
