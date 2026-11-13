@@ -55,7 +55,7 @@ public class Launcher {
         releaseN.setPosition(1.0); // Closed position
         releaseP.setPosition(0.0); // Closed position
 
-        spinUp();
+        //spinUp();
     }
 
     // --- COMMON MOTOR SPIN-UP METHOD ---
@@ -103,7 +103,7 @@ public class Launcher {
                 break;
 
             case RUN_RELEASE:
-                if (teleopShootTimer.milliseconds() < 2000) {
+                if (teleopShootTimer.milliseconds() < 3000) {
                     releaseN.setPosition(0.0);
                     releaseP.setPosition(1.0);
                 } else {

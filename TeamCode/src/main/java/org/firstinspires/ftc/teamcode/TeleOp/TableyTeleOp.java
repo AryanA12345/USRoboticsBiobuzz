@@ -270,6 +270,7 @@ public class TableyTeleOp extends LinearOpMode {
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
+        launcher.spinUp();
         /*
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
         flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
