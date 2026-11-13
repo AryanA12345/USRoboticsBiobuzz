@@ -253,6 +253,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 public class RedShoot extends LinearOpMode {
 
     private Follower follower;
+    private AutoTelemetry autoTelemetry;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
@@ -388,6 +389,8 @@ public class RedShoot extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // Hardware initialization
         follower = Constants.create(hardwareMap);
+        autoTelemetry = new AutoTelemetry(follower, telemetry);
+
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
 
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
@@ -427,19 +430,22 @@ public class RedShoot extends LinearOpMode {
             Scheduler.execute();
 
             // Telemetry diagnostics
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
+            //telemetry.addData("x", follower.pose().x());
+            //telemetry.addData("y", follower.pose().y());
+            //telemetry.addData("heading", follower.pose().heading());
             telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
             telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
-
+            /*
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
             }
+             */
+            autoTelemetry.update();
             telemetry.update();
         }
         OpModeStorage.autonomousEndPose = follower.pose();
+        OpModeStorage.isRedAlliance = true;
     }
 
     public Path path1() {

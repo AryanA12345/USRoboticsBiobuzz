@@ -253,6 +253,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 public class BlueShoot extends LinearOpMode {
 
     private Follower follower;
+    private AutoTelemetry autoTelemetry;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
@@ -424,21 +425,25 @@ public class BlueShoot extends LinearOpMode {
         while (opModeIsActive()) {
             follower.update();
             Scheduler.execute();
-
+            autoTelemetry.update();
             // Telemetry diagnostics
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
+            //telemetry.addData("x", follower.pose().x());
+            //telemetry.addData("y", follower.pose().y());
+            //telemetry.addData("heading", follower.pose().heading());
             telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
             telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
-
+            /*
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
             }
+
+             */
+            autoTelemetry.update();
             telemetry.update();
         }
         OpModeStorage.autonomousEndPose = follower.pose();
+        OpModeStorage.isRedAlliance = false;
     }
 
     public Path path1() {

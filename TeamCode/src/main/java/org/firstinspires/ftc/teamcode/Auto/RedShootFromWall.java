@@ -19,9 +19,11 @@ import com.pedropathing.ivy.Scheduler;
 import static com.pedropathing.ivy.Scheduler.isScheduled;
 import static com.pedropathing.ivy.Scheduler.schedule;
 
+import org.firstinspires.ftc.teamcode.Launcher;
 import org.firstinspires.ftc.teamcode.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
+import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -29,10 +31,11 @@ import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@Disabled
+//@Disabled
 @Autonomous(name = "RedShootFromWall", group = "Autonomous")
 public class RedShootFromWall extends /*Linear*/OpMode {
 
+    private Launcher launcher;
     private AutoTelemetry autoTelemetry;
     private Follower follower;
 
@@ -67,7 +70,9 @@ public class RedShootFromWall extends /*Linear*/OpMode {
      */
     public Command autoRoutine() {
         return sequential(
+                instant(launcher::spinUp),
                 follow(follower, path2()),
+                launcher.getShootCommand(),
                 follow(follower, path3())
         );
     }
@@ -75,6 +80,7 @@ public class RedShootFromWall extends /*Linear*/OpMode {
     @Override
     public void init() {
         Scheduler.reset();
+        launcher = new Launcher(hardwareMap);
         follower = Constants.create(hardwareMap);
         follower.setPose(start);
         follower.update();
@@ -99,7 +105,7 @@ public class RedShootFromWall extends /*Linear*/OpMode {
 
     @Override
     public void loop() {
-        //follower.update();
+        follower.update();
         Scheduler.execute();
 
         /*telemetry.addData("x", follower.pose().x());
@@ -118,40 +124,8 @@ public class RedShootFromWall extends /*Linear*/OpMode {
     @Override
     public void stop() {
         OpModeStorage.autonomousEndPose = follower.pose(); //saves your position in that file
+        OpModeStorage.isRedAlliance = true;
     }
-    //I needed to change it from a linearOpMode to an OpMode, so I had to change the structure some. The original structure is below
-
-    /*@Override
-    public void runOpMode() {
-
-
-        waitForStart();
-        schedule(autoRoutine());
-
-        while (opModeIsActive()) {
-            follower.update();
-            Scheduler.execute();
-
-            telemetry.addData("x", follower.pose().x());
-            telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
-
-            if (follower.currentPath() != null) {
-                telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
-                telemetry.addData("Path number", follower.pathIndex());
-            }
-
-            telemetry.update();
-        }
-    }*/
-
-    /**
-     * @return auto initialization path from robot's starting position to {@link #path1}
-     */
-    /*public Path path1() {
-        return Paths.line(follower.pose(), path1).linear(follower.pose(), path1);
-    }
-     */
 
     /**
      * @return auto path

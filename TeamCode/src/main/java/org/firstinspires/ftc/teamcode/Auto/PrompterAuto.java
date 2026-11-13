@@ -326,6 +326,9 @@ public class PrompterAuto extends LinearOpMode {
             telemetry.update();
         }
         OpModeStorage.autonomousEndPose = follower.pose();
+        if(team == Team.BLUE){
+            OpModeStorage.isRedAlliance = false;
+        }
     }
 
     public Path path1() {
