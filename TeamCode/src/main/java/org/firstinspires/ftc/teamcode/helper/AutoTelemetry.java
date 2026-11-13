@@ -2,7 +2,7 @@
  * Class to add {@link #follower} x, y, and heading to telemetry.
  * Also adds {@code follower.distanceToEndpoint()} and {@code follower.pathIndex()}
  */
-package org.firstinspires.ftc.teamcode.Auto;
+package org.firstinspires.ftc.teamcode.helper;
 
 import com.pedropathing.follower.Follower; // Update this import to match your Pedro Pathing package if needed
 import org.firstinspires.ftc.robotcore.external.Telemetry;

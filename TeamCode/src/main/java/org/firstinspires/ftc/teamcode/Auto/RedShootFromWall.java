@@ -16,19 +16,18 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 
-import static com.pedropathing.ivy.Scheduler.isScheduled;
 import static com.pedropathing.ivy.Scheduler.schedule;
 
-import org.firstinspires.ftc.teamcode.Launcher;
-import org.firstinspires.ftc.teamcode.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.AutoTelemetry;
+import org.firstinspires.ftc.teamcode.helper.Launcher;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 //@Disabled
@@ -119,6 +118,7 @@ public class RedShootFromWall extends /*Linear*/OpMode {
 
         telemetry.update();*/
         autoTelemetry.update();
+        RobotRenderer.drawRobot(follower);
         telemetry.update();//excluded from autoTelemetry so more telemetry can be added
     }
     @Override

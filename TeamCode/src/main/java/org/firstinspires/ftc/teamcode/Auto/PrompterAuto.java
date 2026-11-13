@@ -11,25 +11,21 @@ import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
-import com.pedropathing.ivy.behaviors.EndCondition;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.interpolator.Interpolator;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.skeletonarmy.marrow.prompts.OptionPrompt;
 import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
-import org.firstinspires.ftc.teamcode.OpModeStorage;
-import org.firstinspires.ftc.teamcode.ShooterConstants;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
+import org.firstinspires.ftc.teamcode.helper.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
-import org.firstinspires.ftc.teamcode.Launcher;
+import org.firstinspires.ftc.teamcode.helper.Launcher;
 
 import java.util.EnumMap;
 
@@ -323,6 +319,7 @@ public class PrompterAuto extends LinearOpMode {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
                 telemetry.addData("Path number", follower.pathIndex());
             }
+            RobotRenderer.drawRobot(follower);
             telemetry.update();
         }
         OpModeStorage.autonomousEndPose = follower.pose();

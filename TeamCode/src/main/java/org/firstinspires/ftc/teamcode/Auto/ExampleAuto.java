@@ -10,6 +10,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
+
+import org.firstinspires.ftc.teamcode.helper.AutoTelemetry;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 import static com.pedropathing.api.Paths.*;
 

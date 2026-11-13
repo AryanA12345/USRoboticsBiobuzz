@@ -1,12 +1,10 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.helper;
 
 import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.behaviors.EndCondition;
 import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
 import static com.pedropathing.ivy.groups.Groups.sequential;
-
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -15,13 +13,13 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.ShooterConstants;
-
 public class Launcher {
     private DcMotorEx flywheelN;
     private DcMotorEx flywheelP;
     private Servo releaseN;
     private Servo releaseP;
+
+    private double lastP = -1, lastI = -1, lastD = -1, lastF = -1;
 
     // --- TELEOP STATE MACHINE DEFINITION ---
     public enum ShootState {
@@ -78,14 +76,26 @@ public class Launcher {
     // ==========================================
     public void update(boolean triggerShoot) {
         spinUp(); // Keep flywheels active
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(
-                ShooterConstants.P,
-                ShooterConstants.I,
-                ShooterConstants.D,
-                ShooterConstants.F
-        );
-        flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
-        flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+
+        // Check if tuning constants have changed since the last loop
+        if (ShooterConstants.P != lastP || ShooterConstants.I != lastI ||
+                ShooterConstants.D != lastD || ShooterConstants.F != lastF) {
+
+            PIDFCoefficients fastCoefficients = new PIDFCoefficients(
+                    ShooterConstants.P,
+                    ShooterConstants.I,
+                    ShooterConstants.D,
+                    ShooterConstants.F
+            );
+            flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+            flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+
+            // Cache the current values
+            lastP = ShooterConstants.P;
+            lastI = ShooterConstants.I;
+            lastD = ShooterConstants.D;
+            lastF = ShooterConstants.F;
+        }
 
         switch (currentShootState) {
             case IDLE:
@@ -102,7 +112,7 @@ public class Launcher {
                 double currentVelocityP = flywheelP.getVelocity();
                 double errorP = Math.abs(ShooterConstants.launchP - currentVelocityP);
 
-                if (errorP > 20) {
+                if (errorP > 60) {
                     teleopStabilityTimer.reset(); // Reset if recovering from a previous shot drop
                 }
 
@@ -113,7 +123,7 @@ public class Launcher {
                 break;
 
             case RUN_RELEASE:
-                if (teleopShootTimer.milliseconds() < 3000) {
+                if (teleopShootTimer.milliseconds() < 4000) {
                     releaseN.setPosition(0.0);
                     releaseP.setPosition(1.0);
                 } else {
@@ -142,12 +152,12 @@ public class Launcher {
                     releaseN.setPosition(0.0);
                     releaseP.setPosition(1.0);
                 }),
-                waitMs(2000),
+                waitMs(4000),
                 instant(() -> {
                     releaseN.setPosition(1.0);
                     releaseP.setPosition(0.0);
                 }),
-                waitMs(3000)
+                waitMs(2000)
         );
     }
 

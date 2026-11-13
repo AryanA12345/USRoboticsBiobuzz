@@ -2,7 +2,7 @@
  * OpModeStorage: code snippet from https://pedropathing.com/docs/pathing/guide/teleop-usage#passing-your-position-from-autonomous-to-teleop
  * This snippet takes the robot's ending Pose and sets it in a class to be used as a TeleOp's starting position
  */
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.helper;
 //Make sure this matches your file location
 
 import com.pedropathing.math.Pose;

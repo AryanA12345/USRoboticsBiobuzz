@@ -192,14 +192,14 @@ import com.pedropathing.follower.ManualDrive;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.OpModeStorage;
-import org.firstinspires.ftc.teamcode.ShooterConstants;
-import org.firstinspires.ftc.teamcode.Launcher;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
+import org.firstinspires.ftc.teamcode.helper.ShooterConstants;
+import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name = "Tabley TeleOp")
@@ -225,6 +225,7 @@ public class TableyTeleOp extends LinearOpMode {
     private final ElapsedTime stabilityTimer = new ElapsedTime();
 
     private boolean lastRightBumper = false;
+    private boolean lastLeftBumper = false;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -232,6 +233,7 @@ public class TableyTeleOp extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         /*
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
@@ -246,12 +248,12 @@ public class TableyTeleOp extends LinearOpMode {
         //DcMotor lift = hardwareMap.get(DcMotor.class, "lift");
         //DcMotor turret = hardwareMap.get(DcMotor.class, "turret");
         //Servo hood = hardwareMap.get(Servo.class, "hood");
-        /*
-        Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
+
+        //Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
 
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
 
-         */
+
         //Servo gate = hardwareMap.get(Servo.class, "gate");
 
         //lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -306,6 +308,8 @@ public class TableyTeleOp extends LinearOpMode {
             telemetry.addData("waypoint", waypoint);
 
             boolean currentRightBumper = gamepad1.right_bumper;
+
+
             boolean triggerShoot = (currentRightBumper && !lastRightBumper);
 
             launcher.update(triggerShoot);
@@ -377,6 +381,9 @@ public class TableyTeleOp extends LinearOpMode {
             // --- MANUAL MECHANISM CONTROLS ---
             //if (currentShootState != ShootState.RUN_INTAKE) {
                 intake.setPower((gamepad1.b || gamepad1.x) ? -1.0 : (gamepad1.a ? 1.0 : gamepad1.left_trigger));
+            if(launcher.getCurrentState()!= Launcher.ShootState.RUN_RELEASE) {
+                releaseP.setPosition((gamepad1.left_bumper) ? 1.0 : 0.0);
+            }
             //}
 
             // Safety Check: Force both flywheel velocity back to target if encoder modes get mismatched
@@ -411,6 +418,7 @@ public class TableyTeleOp extends LinearOpMode {
             telemetry.addData("I", ShooterConstants.I);
             telemetry.addData("D", ShooterConstants.D);
             telemetry.addData("F", ShooterConstants.F);
+            RobotRenderer.drawRobot(follower);
 
             //telemetry.addData("Turret", "%.1f° (%.3f rev)", turretPosition * 360.0, turretPosition);
             //telemetry.addData("Speed", "%.0f%%", speed * 100.0);

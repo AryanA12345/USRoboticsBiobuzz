@@ -9,12 +9,14 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.OpModeStorage;
-import org.firstinspires.ftc.teamcode.ShooterConstants;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
+import org.firstinspires.ftc.teamcode.helper.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @TeleOp(name = "Tabley TeleOp TestA")
@@ -56,6 +58,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         follower = Constants.create(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
@@ -90,7 +93,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
             double speed = 1.0;
 
             // --- ALLIANCE-AWARE FIELD-CENTRIC DRIVING ---
-            double effectiveHeading = follower.pose().heading() + allianceOffset;
+            double effectiveHeading = follower.pose().heading() + allianceOffset+Math.toRadians(180);
             DrivePowers powers = ManualDrive.fieldCentric(
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
@@ -226,6 +229,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
             telemetry.addData("Robot Heading", Math.toDegrees(robotPose.heading()));
             telemetry.addData("Is Oriented (Auto-Align)", isOriented);
             telemetry.addData("Hive Is Right", hiveIsRight);
+            RobotRenderer.drawRobot(follower);
             telemetry.update();
         }
 

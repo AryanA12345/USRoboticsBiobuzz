@@ -15,7 +15,8 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.AutoTelemetry;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Disabled

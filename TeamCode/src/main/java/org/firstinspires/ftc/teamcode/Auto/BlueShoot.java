@@ -22,7 +22,7 @@
 //import com.pedropathing.paths.interpolator.Interpolator;
 //import com.pedropathing.ivy.behaviors.EndCondition;
 //
-//import org.firstinspires.ftc.teamcode.OpModeStorage;
+//import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 //import org.firstinspires.ftc.teamcode.pedro.Constants;
 //
 //@Autonomous(name = "SimRedShoot", group = "Autonomous")
@@ -224,7 +224,6 @@
 
 package org.firstinspires.ftc.teamcode.Auto;
 
-import static com.pedropathing.api.Paths.*;
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
@@ -246,7 +245,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.pedropathing.paths.interpolator.Interpolator;
 import com.pedropathing.ivy.behaviors.EndCondition;
 
-import org.firstinspires.ftc.teamcode.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.AutoTelemetry;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
+import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "BlueShoot", group = "Autonomous")
@@ -432,6 +433,7 @@ public class BlueShoot extends LinearOpMode {
             //telemetry.addData("heading", follower.pose().heading());
             telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
             telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
+            RobotRenderer.drawRobot(follower);
             /*
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
