@@ -77,8 +77,8 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         waitForStart();
 
-        // Set alliance offset (0.0 for Red, Math.PI for Blue)
-        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
+//        // Set alliance offset (0.0 for Red, Math.PI for Blue)
+//        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
@@ -93,35 +93,28 @@ public class TableyTeleOpTestA extends LinearOpMode {
             double speed = 1.0;
 
             // --- ALLIANCE-AWARE FIELD-CENTRIC DRIVING ---
-            double effectiveHeading = follower.pose().heading() + allianceOffset+Math.toRadians(180);
+//            double effectiveHeading = follower.pose().heading() + allianceOffset+Math.toRadians(180);
             DrivePowers powers = ManualDrive.fieldCentric(
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
-                    effectiveHeading
+                    follower.pose().heading()
             );
 
             // --- Y BUTTON TOGGLE (MIDDLE-HIVE HEADING LOCK) ---
-            boolean currentY = gamepad1.y;
-            if (currentY && !lastY) {
+            if (gamepad1.yWasPressed()) {
                 isOriented = !isOriented;
             }
-            lastY = currentY;
 
             // --- D-PAD CONFIGURATION FOR HIVE SIDE ---
-            boolean currentDpadDown = gamepad1.dpad_down;
-            boolean currentDpadUp = gamepad1.dpad_up;
-
-            if (currentDpadDown && !lastDpadDown) {
+            if (gamepad1.dpadDownWasPressed()) {
                 hiveIsRight = !hiveIsRight; // Toggle hive side
             }
-            if (currentDpadUp && !lastDpadUp) {
+            if (gamepad1.dpadUpWasPressed()) {
                 hiveIsRight = true; // Failsafe reset to default
             }
-            lastDpadDown = currentDpadDown;
-            lastDpadUp = currentDpadUp;
 
-            // --- APPLY AUTO-ALIGN HEADING LOCK IF ENABLED ---
+            // --- APPLY AUTO-ALIGN HEADING LOCK (BACK-LEFT SHOOTER WITH DISTANCE COMPENSATION) ---
             if (isOriented) {
                 if (OpModeStorage.isRedAlliance) {
                     if (hiveIsRight) {
@@ -140,7 +133,26 @@ public class TableyTeleOpTestA extends LinearOpMode {
                         targetY = 90;
                     }
                 }
-                double arctanOrientation = Math.atan2(targetY - follower.pose().y(), targetX - follower.pose().x());
+
+                Pose robotPose = follower.pose();
+                double currentX = robotPose.x();
+                double currentY = robotPose.y();
+
+                // 1. Calculate distance from robot center to target hive
+                double distanceToTarget = Math.hypot(targetX - currentX, targetY - currentY);
+
+                // 2. Base angle pointing from robot center to target
+                double baseAngle = Math.atan2(targetY - currentY, targetX - currentX);
+
+                // 3. Physical offset of your shooter from the center of rotation (in inches)
+                double lateralOffset = -4.0;
+
+                // 4. Compute dynamic angle adjustment based on distance
+                double dynamicOffset = Math.atan2(lateralOffset, distanceToTarget);
+
+                // 5. Math.PI points the back toward target, plus the dynamic lateral offset
+                double arctanOrientation = baseAngle + Math.PI + dynamicOffset;
+
                 powers = ManualDrive.headingLock(follower, headingPID, powers, arctanOrientation);
             }
 
