@@ -82,7 +82,7 @@ public class PrompterAuto extends LinearOpMode {
         point2Segment1Target.put(Team.RED, poseFactory.of(58.2686, 84.79, 0));
         point2Segment1Target.put(Team.BLUE, poseFactory.of(83.2314, 80.79, 0));
 
-        point3.put(Team.RED, poseFactory.of(9.4482, 95.975, -1.6702));
+        point3.put(Team.RED, poseFactory.of(11.23, 114.64, -1.6702));
         point3.put(Team.BLUE, poseFactory.of(129.244, 31.6238, 33.2046));
 
         point3Control1.put(Team.RED, poseFactory.of(58.4443, 94.356, 0));
@@ -228,7 +228,7 @@ public class PrompterAuto extends LinearOpMode {
         prompter = new Prompter(this);
         launcher = new Launcher(hardwareMap);
         initPoints();
-        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED, Team.BLUE))
+        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED/*, Team.BLUE*/))
                 .prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 15.0, 0.0, 1.0))
                 //.prompt(new MessagePrompt("MAKE SURE ALL SYSTEMS ARE READY"))
                 .showSummary()
