@@ -277,7 +277,7 @@ public class TableyTeleOp extends LinearOpMode {
         //gate.setPosition(0.0);
 
         waitForStart();
-        follower.update();
+        //follower.update();
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
         launcher.spinUp();
