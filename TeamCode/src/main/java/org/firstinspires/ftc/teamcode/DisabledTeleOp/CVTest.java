@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.DisabledTeleOp;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -11,6 +12,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 import java.util.ArrayList;
 
 
+@Disabled
 @TeleOp
 public class CVTest extends LinearOpMode {
     private CVPathGen pather;
