@@ -238,7 +238,7 @@ public class TableyTeleOp extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        follower = Constants.create(hardwareMap);
+        //follower = Constants.create(hardwareMap);
         launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -275,11 +275,14 @@ public class TableyTeleOp extends LinearOpMode {
 
          */
         //gate.setPosition(0.0);
-
-        waitForStart();
-        //follower.update();
+        follower = Constants.create(hardwareMap);
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
+        waitForStart();
+        //follower.update();
+//        follower = Constants.create(hardwareMap);
+//        follower.setPose(OpModeStorage.autonomousEndPose);
+//        follower.update();
         launcher.spinUp();
         /*
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
