@@ -67,7 +67,7 @@ public class PrompterAuto extends LinearOpMode {
         start.put(Team.BLUE, poseFactory.of(132.9268, 107.869, 180));
 
 
-        path1.put(Team.RED, poseFactory.of(58.4486, 13.065, 90));
+        path1.put(Team.RED, poseFactory.of(56.0/*58.44*/, 13.065, 90));
         path1.put(Team.BLUE, poseFactory.of(83.5642, 112.3938, 90));
 
         path1Control1.put(Team.RED, poseFactory.of(45.9211, 26.9174, 0));
@@ -82,7 +82,7 @@ public class PrompterAuto extends LinearOpMode {
         point2Segment1Target.put(Team.RED, poseFactory.of(58.2686, 84.79, 0));
         point2Segment1Target.put(Team.BLUE, poseFactory.of(83.2314, 80.79, 0));
 
-        point3.put(Team.RED, poseFactory.of(11.23, 114.64, -1.6702));
+        point3.put(Team.RED, poseFactory.of(14.9129, 119.4215, 162.2166));
         point3.put(Team.BLUE, poseFactory.of(129.244, 31.6238, 33.2046));
 
         point3Control1.put(Team.RED, poseFactory.of(58.4443, 94.356, 0));
@@ -321,11 +321,12 @@ public class PrompterAuto extends LinearOpMode {
             }
             RobotRenderer.drawRobot(follower);
             telemetry.update();
+            OpModeStorage.autonomousEndPose = follower.pose();
         }
         OpModeStorage.autonomousEndPose = follower.pose();
-        if(team == Team.BLUE){
+        /*if(team == Team.BLUE){
             OpModeStorage.isRedAlliance = false;
-        }
+        }*/
     }
 
     public Path path1() {

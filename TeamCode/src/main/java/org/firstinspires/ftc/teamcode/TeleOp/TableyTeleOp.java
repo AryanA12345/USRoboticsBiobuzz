@@ -185,6 +185,8 @@
 
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.pedropathing.api.Paths;
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
@@ -225,7 +227,13 @@ public class TableyTeleOp extends LinearOpMode {
     private final ElapsedTime stabilityTimer = new ElapsedTime();
 
     private boolean lastRightBumper = false;
+    private boolean lastDpadLeft = false;
     private boolean lastLeftBumper = false;
+
+    private final PoseFactory poseFactory = PoseFactory.degrees();
+
+    private final Pose waypoint1 = poseFactory.of(56.14, 35.77, 270);
+    private final Pose waypoint2 = poseFactory.of(61.9166, 131.2101, 90);
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -269,7 +277,7 @@ public class TableyTeleOp extends LinearOpMode {
         //gate.setPosition(0.0);
 
         waitForStart();
-
+        follower.update();
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
         launcher.spinUp();
@@ -281,15 +289,16 @@ public class TableyTeleOp extends LinearOpMode {
         flywheelP.setVelocity(0);
 
          */
-
+    int flip = 1;
         while (opModeIsActive()) {
             double speed = 1.0;
             DrivePowers powers = ManualDrive.fieldCentric(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
+                    -(flip*gamepad1.left_stick_y),
+                    -(flip*gamepad1.left_stick_x),
                     -gamepad1.right_stick_x,
                     follower.pose().heading()
             );
+
             /*ManualDrive.driveOrHold(
                     follower,
                     -gamepad1.left_stick_y,
@@ -308,6 +317,11 @@ public class TableyTeleOp extends LinearOpMode {
             telemetry.addData("waypoint", waypoint);
 
             boolean currentRightBumper = gamepad1.right_bumper;
+            boolean currentDpadLeft = gamepad1.dpad_left;
+            if(currentDpadLeft){
+                flip *=-1;
+            }
+
 
 
             boolean triggerShoot = (currentRightBumper && !lastRightBumper);
@@ -377,6 +391,7 @@ public class TableyTeleOp extends LinearOpMode {
             */
 
             lastRightBumper = currentRightBumper;
+            lastDpadLeft = currentDpadLeft;
 
             // --- MANUAL MECHANISM CONTROLS ---
             //if (currentShootState != ShootState.RUN_INTAKE) {
@@ -384,6 +399,16 @@ public class TableyTeleOp extends LinearOpMode {
             if(launcher.getCurrentState()!= Launcher.ShootState.RUN_RELEASE) {
                 releaseP.setPosition((gamepad1.left_bumper) ? 1.0 : 0.0);
             }
+            if(gamepad1.dpad_up){
+                if(robotPose.y()>70) {
+                    follower.follow(Paths.line(robotPose, waypoint2).linear(robotPose, waypoint2));
+                } else {
+                    follower.follow(Paths.line(robotPose, waypoint1).linear(robotPose, waypoint1));
+                }
+            }
+//            if(gamepad1.dpad_left){
+//                follower.follow(Paths.line(robotPose, waypoint2).linear(robotPose, waypoint2));
+//            }
             //}
 
             // Safety Check: Force both flywheel velocity back to target if encoder modes get mismatched
