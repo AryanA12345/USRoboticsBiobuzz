@@ -145,7 +145,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 double baseAngle = Math.atan2(targetY - currentY, targetX - currentX);
 
                 // 3. Physical offset of your shooter from the center of rotation (in inches)
-                double lateralOffset = -4.0;
+                double lateralOffset = -5;
 
                 // 4. Compute dynamic angle adjustment based on distance
                 double dynamicOffset = Math.atan2(lateralOffset, distanceToTarget);
