@@ -232,7 +232,7 @@ public class TableyTeleOp extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose waypoint1 = poseFactory.of(56.14, 35.77, 270);
+    private final Pose waypoint1 = poseFactory.of(56.14, 11.77, 270);
     private final Pose waypoint2 = poseFactory.of(61.9166, 131.2101, 90);
 
     @Override

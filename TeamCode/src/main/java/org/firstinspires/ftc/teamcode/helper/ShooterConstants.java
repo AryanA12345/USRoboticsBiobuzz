@@ -11,4 +11,6 @@ public class ShooterConstants {
     public static double I = 0.0;
     public static double D = /*0.3*/0.0;
     public static double F = 13.8;
+
+    public static double offset = 5;
 }

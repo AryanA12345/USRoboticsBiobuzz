@@ -67,7 +67,7 @@ public class PrompterAuto extends LinearOpMode {
         start.put(Team.BLUE, poseFactory.of(132.9268, 107.869, 180));
 
 
-        path1.put(Team.RED, poseFactory.of(56.0/*58.44*/, 13.065, 90));
+        path1.put(Team.RED, poseFactory.of(54.0/*58.44*/, 13.065, 90));
         path1.put(Team.BLUE, poseFactory.of(83.5642, 112.3938, 90));
 
         path1Control1.put(Team.RED, poseFactory.of(45.9211, 26.9174, 0));

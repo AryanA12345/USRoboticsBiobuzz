@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import com.pedropathing.api.Paths;
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.controllers.PIDController;
 import com.pedropathing.math.Pose;
 import com.pedropathing.drivetrain.DrivePowers;
@@ -14,6 +16,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
 import org.firstinspires.ftc.teamcode.helper.ShooterConstants;
@@ -26,6 +29,11 @@ public class TableyTeleOpTestA extends LinearOpMode {
     private int launchN = ShooterConstants.launchN;
     private Follower follower;
     Pose waypoint = null;
+
+    private final PoseFactory poseFactory = PoseFactory.degrees();
+
+    private final Pose waypoint1 = poseFactory.of(56.14, 11.77, 270);
+    private final Pose waypoint2 = poseFactory.of(61.9166, 131.2101, 90);
 
     // --- TELEOP SHOOT STATE MACHINE DEFINITION ---
     private enum ShootState {
@@ -53,10 +61,12 @@ public class TableyTeleOpTestA extends LinearOpMode {
     private double targetY;
     private PIDController headingPID = new PIDController(1.2, 0.0, 0.0);
 
+    private double offset = ShooterConstants.offset;
+
     @Override
     public void runOpMode() throws InterruptedException {
 
-        follower = Constants.create(hardwareMap);
+
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
@@ -73,12 +83,13 @@ public class TableyTeleOpTestA extends LinearOpMode {
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
 
         releaseN.setPosition(1.0); // 0 degrees
-        releaseP.setPosition(0.0); // 0 degrees
+        releaseP.setPosition(1.0); // 0 degrees
 
         waitForStart();
 
 //        // Set alliance offset (0.0 for Red, Math.PI for Blue)
 //        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
+        follower = Constants.create(hardwareMap);
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
@@ -91,6 +102,8 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         while (opModeIsActive()) {
             double speed = 1.0;
+            launchP = ShooterConstants.launchP;
+            offset = ShooterConstants.offset;
 
             // --- ALLIANCE-AWARE FIELD-CENTRIC DRIVING ---
 //            double effectiveHeading = follower.pose().heading() + allianceOffset+Math.toRadians(180);
@@ -110,9 +123,25 @@ public class TableyTeleOpTestA extends LinearOpMode {
             if (gamepad1.dpadDownWasPressed()) {
                 hiveIsRight = !hiveIsRight; // Toggle hive side
             }
+            /*
             if (gamepad1.dpadUpWasPressed()) {
                 hiveIsRight = true; // Failsafe reset to default
             }
+             */
+
+            if(gamepad1.dpadUpWasPressed()){
+                if(follower.pose().y()>70) {
+                    follower.follow(Paths.line(follower.pose(), waypoint2).linear(follower.pose(), waypoint2));
+                } else {
+                    follower.follow(Paths.line(follower.pose(), waypoint1).linear(follower.pose(), waypoint1));
+                }
+            }
+            if(follower.pose().y()>70) {
+                hiveIsRight = false;
+            } else {
+                hiveIsRight = true;
+            }
+
 
             // --- APPLY AUTO-ALIGN HEADING LOCK (BACK-LEFT SHOOTER WITH DISTANCE COMPENSATION) ---
             if (isOriented) {
@@ -145,7 +174,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 double baseAngle = Math.atan2(targetY - currentY, targetX - currentX);
 
                 // 3. Physical offset of your shooter from the center of rotation (in inches)
-                double lateralOffset = 5;
+                double lateralOffset = offset;
 
                 // 4. Compute dynamic angle adjustment based on distance
                 double dynamicOffset = Math.atan2(lateralOffset, distanceToTarget);
@@ -156,8 +185,16 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 powers = ManualDrive.headingLock(follower, headingPID, powers, arctanOrientation);
             }
 
-            ManualDrive.driveOrHold(follower, powers);
+            boolean driverMovingSticks = Math.abs(gamepad1.left_stick_x) > 0.1
+                    || Math.abs(gamepad1.left_stick_y) > 0.1
+                    || Math.abs(gamepad1.right_stick_x) > 0.1;
+
+            if (!follower.isBusy() || driverMovingSticks) {
+                ManualDrive.driveOrHold(follower, powers);
+            }
             follower.update();
+            //ManualDrive.driveOrHold(follower, powers);
+            //follower.update();
 
             Pose robotPose = follower.pose();
             boolean currentRightBumper = gamepad1.right_bumper;
@@ -167,7 +204,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 case IDLE:
                     // Keep release servos closed at 0 degrees during idle
                     releaseN.setPosition(1.0);
-                    releaseP.setPosition(0.0);
+                    releaseP.setPosition(1.0);
                     flywheelN.setVelocity(launchN);
                     flywheelP.setVelocity(launchP);
 
@@ -196,13 +233,13 @@ public class TableyTeleOpTestA extends LinearOpMode {
                     break;
 
                 case RUN_INTAKE:
-                    if (shootTimer.milliseconds() < 3000) {
+                    if (shootTimer.milliseconds() < 4000) {
                         // Open release servos
                         releaseN.setPosition(0.0);
-                        releaseP.setPosition(1.0);
+                        releaseP.setPosition(0.0);
                     } else {
                         releaseN.setPosition(1.0); // Return release servos to 0 degrees
-                        releaseP.setPosition(0.0);
+                        releaseP.setPosition(1.0);
                         //flywheelN.setVelocity(0.0);
                         //flywheelP.setVelocity(0.0);
                         shootTimer.reset();
@@ -220,9 +257,10 @@ public class TableyTeleOpTestA extends LinearOpMode {
             lastRightBumper = currentRightBumper;
 
             // --- MANUAL MECHANISM CONTROLS ---
-            if (currentShootState != ShootState.RUN_INTAKE) {
-                intake.setPower((gamepad1.b || gamepad1.x) ? -1.0 : (gamepad1.a ? 1.0 : gamepad1.left_trigger));
+            if(currentShootState != ShootState.RUN_INTAKE) {
+                releaseP.setPosition((gamepad1.left_bumper) ? 0.0 : 1.0);
             }
+            intake.setPower(gamepad1.left_trigger_pressed ? -1.0 : gamepad1.right_trigger);
 
             // Safety Check: Force both flywheel velocity back to target if encoder modes get mismatched
             if (flywheelN.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
