@@ -52,6 +52,7 @@ public class PrompterAuto extends LinearOpMode {
 
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
+    private final Pose originalPos = poseFactory.of(9.3,131.5, 0);
 
     private final EnumMap<Team, Pose> start = new EnumMap<>(Team.class);
     private final EnumMap<Team, Pose> path1 = new EnumMap<>(Team.class);
@@ -237,6 +238,8 @@ public class PrompterAuto extends LinearOpMode {
         // Hardware initialization
         follower = Constants.create(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        follower.setPose(originalPos);
+        follower.update();
         /*
         DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
         DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
@@ -266,6 +269,7 @@ public class PrompterAuto extends LinearOpMode {
         follower.update();
         while (!isStarted() && !isStopRequested()) {
             prompter.run();
+            follower.update();
             /*if (team == Team.RED) {
                 telemetry.addLine("     +---\\/-----------------+");
                 telemetry.addLine("     |                      |");
@@ -293,10 +297,10 @@ public class PrompterAuto extends LinearOpMode {
 
         // Once start is pressed and the loop exits, safety-check or set your pose:
         if (team != null) {
-            follower.setPose(start.get(team));
+            //follower.setPose(start.get(team));
         } else {
             // Fallback default just in case no prompt was completed
-            follower.setPose(start.get(Team.RED));
+            //follower.setPose(start.get(Team.RED));
         }
         waitForStart();
 
@@ -330,7 +334,7 @@ public class PrompterAuto extends LinearOpMode {
     }
 
     public Path path1() {
-        return Paths.curve(start.get(team), path1Control1.get(team), path1.get(team)).heading(Interpolator.piecewise().until(1, Interpolator.facingPoint(point2Segment1Target.get(team)).reverse()));
+        return Paths.curve(/*start.get(team)*/follower.pose(), path1Control1.get(team), path1.get(team)).heading(Interpolator.piecewise().until(1, Interpolator.facingPoint(point2Segment1Target.get(team)).reverse()));
     }
 
     public Path path2() {

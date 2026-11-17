@@ -52,8 +52,8 @@ public class Launcher {
         releaseN = hardwareMap.get(Servo.class, "releaseN");
         releaseP = hardwareMap.get(Servo.class, "releaseP");
 
-        releaseN.setPosition(1.0); // Closed position
-        releaseP.setPosition(0.0); // Closed position
+        releaseN.setPosition(0.0); // Closed position
+        releaseP.setPosition(1.0); // Closed position
 
         //spinUp();
     }
@@ -99,8 +99,8 @@ public class Launcher {
 
         switch (currentShootState) {
             case IDLE:
-                releaseN.setPosition(1.0);
-                releaseP.setPosition(0.0);
+                releaseN.setPosition(0.0);
+                releaseP.setPosition(1.0);
 
                 if (triggerShoot) {
                     teleopStabilityTimer.reset();
@@ -124,11 +124,11 @@ public class Launcher {
 
             case RUN_RELEASE:
                 if (teleopShootTimer.milliseconds() < 4000) {
-                    releaseN.setPosition(0.0);
-                    releaseP.setPosition(1.0);
-                } else {
                     releaseN.setPosition(1.0);
                     releaseP.setPosition(0.0);
+                } else {
+                    releaseN.setPosition(0.0);
+                    releaseP.setPosition(1.0);
                     teleopShootTimer.reset();
                     currentShootState = ShootState.COOLDOWN;
                 }
@@ -149,13 +149,13 @@ public class Launcher {
         return sequential(
                 waitForFlywheelStable(),
                 instant(() -> {
-                    releaseN.setPosition(0.0);
-                    releaseP.setPosition(1.0);
+                    releaseN.setPosition(1.0);
+                    releaseP.setPosition(0.0);
                 }),
                 waitMs(4000),
                 instant(() -> {
-                    releaseN.setPosition(1.0);
-                    releaseP.setPosition(0.0);
+                    releaseN.setPosition(0.0);
+                    releaseP.setPosition(1.0);
                 }),
                 waitMs(2000)
         );

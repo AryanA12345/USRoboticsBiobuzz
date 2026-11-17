@@ -84,14 +84,15 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         releaseN.setPosition(1.0); // 0 degrees
         releaseP.setPosition(1.0); // 0 degrees
+        follower = Constants.create(hardwareMap);
+
+        follower.setPose(OpModeStorage.autonomousEndPose);
 
         waitForStart();
 
 //        // Set alliance offset (0.0 for Red, Math.PI for Blue)
 //        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
-        follower = Constants.create(hardwareMap);
 
-        follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
 
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
