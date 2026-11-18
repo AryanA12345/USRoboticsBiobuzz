@@ -49,16 +49,18 @@ public class FlowerAuto extends LinearOpMode {
     private final Pose point2Segment3Heading = poseFactory.of(9.0021, 9.0491, -90);
     private final Pose point3 = poseFactory.of(60.3467, 36.4895, -270);
     private final Pose point3Control1 = poseFactory.of(61.1441, 15.4866, 0);
-    private final Pose point3Segment1Heading = poseFactory.of(64.2894, 36.6858, 270);
-    private final Pose point3Segment2Start = poseFactory.of(64.2894, 36.6858, -90);
-    private final Pose point3Segment2End = poseFactory.of(64.2894, 36.6858, 90);
+    private final Pose point3Segment1Heading = poseFactory.of(64.29, 36.6858, 270);
+    private final Pose point3Segment2Start = poseFactory.of(64.29, 36.6858, -90);
+    private final Pose point3Segment2End = poseFactory.of(64.29, 36.6858, 90);
     private final Pose point4 = poseFactory.of(64.29, 88.8708, 90);
-    private final Pose point5 = poseFactory.of(47.6745, 120.8887, 107.4299);
-    private final Pose point5Control1 = poseFactory.of(60.1223, 99.5216, 0);
+    private final Pose point5 = poseFactory.of(31.3005, 127.7061, 126.7959);
+    private final Pose point5Control1 = poseFactory.of(64.6735, 101.9397, 0);
     private final Pose point5Control2 = poseFactory.of(51.5925, 106.0281, 0);
     private final Pose point5Control3 = poseFactory.of(47.2902, 119.6069, 0);
-    private final Pose point5Segment2Target = poseFactory.of(58, 88, 0);
-    private final Pose point6 = poseFactory.of(47.0818, 130.8684, 93.3989);
+    private final Pose point5Segment2Target = poseFactory.of(61, 88, 0);
+    private final Pose point6 = poseFactory.of(49.2393, 129.7829, 107.8078);
+    private final Pose point6Control1 = poseFactory.of(54.7469, 104.043, 0);
+    private final Pose point6Segment1Target = poseFactory.of(62.5, 88.5, 0);
     private final Pose point7 = poseFactory.of(10.2468, 47.4569, 180);
     private final Pose point7Control1 = poseFactory.of(15.3277, 99.041, 0);
     private final Pose point7Control2 = poseFactory.of(42.5517, 55.7283, 0);
@@ -205,7 +207,7 @@ public class FlowerAuto extends LinearOpMode {
     }
 
     public Path path6() {
-        return Paths.line(point5, point6).tangent();
+        return Paths.curve(point5, point6Control1, point6).heading(Interpolator.piecewise().until(1, Interpolator.facingPoint(point6Segment1Target).reverse()));
     }
 
     public Path path7() {
