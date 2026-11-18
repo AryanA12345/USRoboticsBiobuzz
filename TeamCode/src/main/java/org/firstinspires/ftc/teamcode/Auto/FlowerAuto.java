@@ -33,6 +33,8 @@ public class FlowerAuto extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
+    private final Pose originalPos = poseFactory.of(9.3,131.5, 0);
+
     private final Pose start = poseFactory.of(54.8241, 9.1829, 90);
     private final Pose point1 = poseFactory.of(55.891, 12.3049, -88.2174);
     private final Pose point1Segment1Heading = poseFactory.of(55.891, 12.3049, 270);
@@ -130,10 +132,11 @@ public class FlowerAuto extends LinearOpMode {
     public void runOpMode() {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
-        follower.setPose(start);
+        follower.setPose(originalPos);
         follower.update();
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         //Servo flowerIntake = hardwareMap.get(Servo.class, "flowerIntake");
+        launcher = new Launcher(hardwareMap);
 
         waitForStart();
         schedule(autoRoutine(intake, /*flowerIntake,*/ launcher));
@@ -156,7 +159,7 @@ public class FlowerAuto extends LinearOpMode {
     }
 
     public Path path1() {
-        return Paths.line(start, point1).heading(Interpolator.piecewise().until(0.1268, Interpolator.constant(point1Segment1Heading)).until(1, Interpolator.facingPoint(point1Segment2Target).reverse()));
+        return Paths.line(/*start*/follower.pose(), point1).heading(Interpolator.piecewise().until(0.1268, Interpolator.constant(point1Segment1Heading)).until(1, Interpolator.facingPoint(point1Segment2Target).reverse()));
     }
 
     public Path path2() {
