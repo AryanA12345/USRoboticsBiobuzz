@@ -21,6 +21,8 @@ import com.pedropathing.paths.interpolator.Interpolator;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.skeletonarmy.marrow.prompts.Prompter;
+import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
 import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -47,10 +49,10 @@ public class FlowerAuto extends LinearOpMode {
     private final Pose point2Segment3Heading = poseFactory.of(9.0021, 9.0491, -90);
     private final Pose point3 = poseFactory.of(60.3467, 36.4895, -270);
     private final Pose point3Control1 = poseFactory.of(61.1441, 15.4866, 0);
-    private final Pose point3Segment1Heading = poseFactory.of(60.3467, 36.4895, 270);
-    private final Pose point3Segment2Start = poseFactory.of(60.3467, 36.4895, -90);
-    private final Pose point3Segment2End = poseFactory.of(60.3467, 36.4895, 90);
-    private final Pose point4 = poseFactory.of(60.1467, 88.8708, 90);
+    private final Pose point3Segment1Heading = poseFactory.of(64.2894, 36.6858, 270);
+    private final Pose point3Segment2Start = poseFactory.of(64.2894, 36.6858, -90);
+    private final Pose point3Segment2End = poseFactory.of(64.2894, 36.6858, 90);
+    private final Pose point4 = poseFactory.of(64.29, 88.8708, 90);
     private final Pose point5 = poseFactory.of(47.6745, 120.8887, 107.4299);
     private final Pose point5Control1 = poseFactory.of(60.1223, 99.5216, 0);
     private final Pose point5Control2 = poseFactory.of(51.5925, 106.0281, 0);
@@ -73,6 +75,23 @@ public class FlowerAuto extends LinearOpMode {
     private Path path3 = path3();
     private Path path4 = path4();
     private Path path5 = path5();
+
+    private double delay = 0;
+
+    private Prompter prompter;
+
+
+
+
+    public void onPromptsComplete() {
+        //team = prompter.get("alliance");
+        delay = prompter.get("delay");
+
+
+        //telemetry.addData("Selected Alliance", team);
+        telemetry.addData("Selected Delay", delay);
+        telemetry.update();
+    }
 
 
     // Autonomous routine
@@ -101,9 +120,10 @@ public class FlowerAuto extends LinearOpMode {
 
                 // Run path 2 and intake timing together
                 parallel(
-                        follow(follower, path2()),
-                        waitTimedIntake
+                        follow(follower, path2())
+                        //waitTimedIntake
                 ),
+                timedIntake,
 
                 // Chained paths 3, 4, 5
                 follow(follower, chainedPath()),
@@ -135,8 +155,14 @@ public class FlowerAuto extends LinearOpMode {
         follower.setPose(originalPos);
         follower.update();
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        intake.setDirection(DcMotorSimple.Direction.REVERSE);
         //Servo flowerIntake = hardwareMap.get(Servo.class, "flowerIntake");
         launcher = new Launcher(hardwareMap);
+        prompter = new Prompter(this);
+
+        prompter.prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 30.0, 0.0, 1.0))
+                .showSummary()
+                .onComplete(this::onPromptsComplete);
 
         waitForStart();
         schedule(autoRoutine(intake, /*flowerIntake,*/ launcher));

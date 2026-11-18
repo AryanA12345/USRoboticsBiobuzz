@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
+import android.util.Size;
+
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.controllers.PIDController;
@@ -15,6 +17,14 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.skeletonarmy.marrow.telemetry.FormatBuilder;
+import com.skeletonarmy.marrow.telemetry.HtmlColor;
+import com.skeletonarmy.marrow.telemetry.MarrowTelemetry;
+import com.skeletonarmy.marrow.telemetry.modifiers.BoldModifier;
+import com.skeletonarmy.marrow.telemetry.modifiers.ColorModifier;
+import com.skeletonarmy.marrow.telemetry.modifiers.EmptyModifier;
+import com.skeletonarmy.marrow.telemetry.modifiers.HtmlTextSize;
+import com.skeletonarmy.marrow.telemetry.modifiers.SizeModifier;
 
 import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
@@ -27,6 +37,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
     private int launchP = ShooterConstants.launchP;
     private int launchN = ShooterConstants.launchN;
+    private Launcher launcher;
     private Follower follower;
     Pose waypoint = null;
 
@@ -65,45 +76,50 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-
-
+        telemetry = new MarrowTelemetry(telemetry);
+        launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
-        DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
-        flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
+        //DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
+       // DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
+        //flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
 
         // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
-        flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
-        flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+        //PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
+        //flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
+        //flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
 
-        Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
+        //Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
 
-        releaseN.setPosition(1.0); // 0 degrees
-        releaseP.setPosition(1.0); // 0 degrees
+        //releaseN.setPosition(1.0); // 0 degrees
+        //releaseP.setPosition(1.0); // 0 degrees
         follower = Constants.create(hardwareMap);
 
         follower.setPose(OpModeStorage.autonomousEndPose);
 
         waitForStart();
+        launcher.spinUp();
 
 //        // Set alliance offset (0.0 for Red, Math.PI for Blue)
 //        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
 
         follower.update();
-
+        /*
         // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
         flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheelN.setVelocity(launchN);
         flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         flywheelP.setVelocity(launchP);
+         */
 
         while (opModeIsActive()) {
             double speed = 1.0;
-            launchP = ShooterConstants.launchP;
+            boolean currentRightBumper = gamepad1.right_bumper;
+            boolean triggerShoot = (currentRightBumper && !lastRightBumper);
+            launcher.update(triggerShoot);
+            //launchP = ShooterConstants.launchP;
             offset = ShooterConstants.offset;
 
             // --- ALLIANCE-AWARE FIELD-CENTRIC DRIVING ---
@@ -198,9 +214,10 @@ public class TableyTeleOpTestA extends LinearOpMode {
             //follower.update();
 
             Pose robotPose = follower.pose();
-            boolean currentRightBumper = gamepad1.right_bumper;
+            //boolean currentRightBumper = gamepad1.right_bumper;
 
             // --- NON-BLOCKING AUTOMATED SHOOT SEQUENCE ---
+            /*
             switch (currentShootState) {
                 case IDLE:
                     // Keep release servos closed at 0 degrees during idle
@@ -223,7 +240,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                     double errorN = Math.abs(launchN - currentVelocityN);
                     double errorP = Math.abs(launchP - currentVelocityP);
 
-                    if (/*errorN > 20 || */errorP > 20) { //@TODO when we get the nectar motor back up, modify this to actually work
+                    if (//errorN > 20 || errorP > 20) { //@TODO when we get the nectar motor back up, modify this to actually work
                         stabilityTimer.reset(); // Wait for recovery if recovering from a previous shot
                     }
 
@@ -255,15 +272,18 @@ public class TableyTeleOpTestA extends LinearOpMode {
                     break;
             }
 
+             */
+
             lastRightBumper = currentRightBumper;
 
             // --- MANUAL MECHANISM CONTROLS ---
-            if(currentShootState != ShootState.RUN_INTAKE) {
+            if(launcher.getCurrentState() != Launcher.ShootState.RUN_RELEASE) {
                 releaseP.setPosition((gamepad1.left_bumper) ? 0.0 : 1.0);
             }
             intake.setPower(gamepad1.left_trigger_pressed ? -1.0 : gamepad1.right_trigger);
 
             // Safety Check: Force both flywheel velocity back to target if encoder modes get mismatched
+            /*
             if (flywheelN.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
                 flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
@@ -271,21 +291,44 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             }
 
+             */
+
             // Diagnostic Telemetry Monitoring
-            telemetry.addData("Shoot State", currentShootState);
-            telemetry.addData("Flywheel N Velocity", flywheelN.getVelocity());
-            telemetry.addData("Flywheel P Velocity", flywheelP.getVelocity());
+            telemetry.addData("Shoot State", String.valueOf(launcher.getCurrentState()),new BoldModifier());
+            //telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
+            telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
             telemetry.addData("Robot X", robotPose.x());
             telemetry.addData("Robot Y", robotPose.y());
             telemetry.addData("Robot Heading", Math.toDegrees(robotPose.heading()));
-            telemetry.addData("Is Oriented (Auto-Align)", isOriented);
-            telemetry.addData("Hive Is Right", hiveIsRight);
+            new FormatBuilder(isOriented())
+                    .addConditional(this::isOriented, new ColorModifier(HtmlColor.LIME_GREEN), new ColorModifier(HtmlColor.RED))
+                    .italic()
+                    .printData(telemetry, "Is Oriented (Auto-Align)");
+            new FormatBuilder(timeLeft())
+                    .addConditional(this::last10Seconds, new ColorModifier(HtmlColor.RED), new ColorModifier(HtmlColor.LIME_GREEN))
+                    .bold()
+                    .addConditional(this::last10Seconds, new SizeModifier(HtmlTextSize.BIG), new EmptyModifier())
+                    .printData(telemetry, "Time Remaining");
+            //telemetry.addData("Is Oriented (Auto-Align)", String.valueOf(isOriented), new BoldModifier());
+            //telemetry.addData("Hive Is Right", hiveIsRight);
             RobotRenderer.drawRobot(follower);
             telemetry.update();
         }
 
         // Safeguard to shut down motors safely when the match ends
-        flywheelN.setVelocity(0);
-        flywheelP.setVelocity(0);
+        //flywheelN.setVelocity(0);
+        //flywheelP.setVelocity(0);
+        launcher.stop();
+    }
+
+    private int timeLeft() {
+        return (int)(120-getRuntime());
+    }
+    private boolean last10Seconds(){
+        return timeLeft()<=10;
+    }
+
+    private boolean isOriented() {
+        return isOriented;
     }
 }

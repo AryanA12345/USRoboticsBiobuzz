@@ -16,6 +16,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.paths.interpolator.Interpolator;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.skeletonarmy.marrow.prompts.OptionPrompt;
+import com.skeletonarmy.marrow.prompts.Prompter;
+import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
 import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
@@ -27,6 +30,10 @@ public class WallShoot extends LinearOpMode {
 
     private Follower follower;
     private Launcher launcher;
+
+    private Prompter prompter;
+
+    private double delay;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
     private final Pose originalPos = poseFactory.of(9.3,131.5, 0);
@@ -70,7 +77,7 @@ public class WallShoot extends LinearOpMode {
         // --- 3. MASTER CHOREOGRAPHY SEQUENCE ---
         return sequential(
                 // Spin up both flywheels immediately at match start to run continuously
-                //waitMs(delay*1000),
+                waitMs(delay*1000),
                 /*instant(() -> {
                     flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
                     flywheelN.setVelocity(launchN);
@@ -118,15 +125,30 @@ public class WallShoot extends LinearOpMode {
         );
     }
 
+    public void onPromptsComplete() {
+        //team = prompter.get("alliance");
+        delay = prompter.get("delay");
+
+
+        //telemetry.addData("Selected Alliance", team);
+        telemetry.addData("Selected Delay", delay);
+        telemetry.update();
+    }
+
     @Override
     public void runOpMode() {
         Scheduler.reset();
+        prompter = new Prompter(this);
         follower = Constants.create(hardwareMap);
         follower.setPose(originalPos);
         //follower.setPose(start);
         follower.update();
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = new Launcher(hardwareMap);
+
+        prompter.prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 30.0, 0.0, 1.0))
+                .showSummary()
+                .onComplete(this::onPromptsComplete);
 
         waitForStart();
         schedule(autoRoutine(intake, launcher/*flywheelN, flywheelP, intake, releaseN, releaseP*/));
