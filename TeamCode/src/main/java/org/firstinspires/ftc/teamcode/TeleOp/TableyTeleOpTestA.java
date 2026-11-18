@@ -98,9 +98,11 @@ public class TableyTeleOpTestA extends LinearOpMode {
         follower = Constants.create(hardwareMap);
 
         follower.setPose(OpModeStorage.autonomousEndPose);
+        follower.update();
 
         waitForStart();
         launcher.spinUp();
+        follower.setPose(OpModeStorage.autonomousEndPose);
 
 //        // Set alliance offset (0.0 for Red, Math.PI for Blue)
 //        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
@@ -275,6 +277,9 @@ public class TableyTeleOpTestA extends LinearOpMode {
              */
 
             lastRightBumper = currentRightBumper;
+            if(gamepad1.a){
+                follower.setPose(poseFactory.of(9.3,131.5, 0));
+            }
 
             // --- MANUAL MECHANISM CONTROLS ---
             if(launcher.getCurrentState() != Launcher.ShootState.RUN_RELEASE) {

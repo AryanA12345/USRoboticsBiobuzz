@@ -25,6 +25,7 @@ import com.skeletonarmy.marrow.prompts.Prompter;
 import com.skeletonarmy.marrow.prompts.ValuePrompt;
 
 import org.firstinspires.ftc.teamcode.helper.Launcher;
+import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
 
 @Autonomous(name = "FlowerAuto", group = "Autonomous")
@@ -49,10 +50,10 @@ public class FlowerAuto extends LinearOpMode {
     private final Pose point2Segment3Heading = poseFactory.of(9.0021, 9.0491, -90);
     private final Pose point3 = poseFactory.of(60.3467, 36.4895, -270);
     private final Pose point3Control1 = poseFactory.of(61.1441, 15.4866, 0);
-    private final Pose point3Segment1Heading = poseFactory.of(64.29, 36.6858, 270);
-    private final Pose point3Segment2Start = poseFactory.of(64.29, 36.6858, -90);
-    private final Pose point3Segment2End = poseFactory.of(64.29, 36.6858, 90);
-    private final Pose point4 = poseFactory.of(64.29, 88.8708, 90);
+    private final Pose point3Segment1Heading = poseFactory.of(66.29, 36.6858, 270);
+    private final Pose point3Segment2Start = poseFactory.of(66.29, 36.6858, -90);
+    private final Pose point3Segment2End = poseFactory.of(66.29, 36.6858, 90);
+    private final Pose point4 = poseFactory.of(66.29, 88.8708, 90);
     private final Pose point5 = poseFactory.of(31.3005, 127.7061, 126.7959);
     private final Pose point5Control1 = poseFactory.of(64.6735, 101.9397, 0);
     private final Pose point5Control2 = poseFactory.of(51.5925, 106.0281, 0);
@@ -183,7 +184,9 @@ public class FlowerAuto extends LinearOpMode {
             }
 
             telemetry.update();
+            OpModeStorage.autonomousEndPose = follower.pose();
         }
+        OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
