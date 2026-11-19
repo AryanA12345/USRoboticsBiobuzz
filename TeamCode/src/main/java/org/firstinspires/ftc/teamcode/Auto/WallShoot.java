@@ -35,6 +35,12 @@ public class WallShoot extends LinearOpMode {
 
     private double delay;
 
+    private enum Team{
+        RED,
+        BLUE
+    }
+    private Team team = Team.RED;
+
     private final PoseFactory poseFactory = PoseFactory.degrees();
     private final Pose originalPos = poseFactory.of(9.3,131.5, 0);
 
@@ -126,11 +132,11 @@ public class WallShoot extends LinearOpMode {
     }
 
     public void onPromptsComplete() {
-        //team = prompter.get("alliance");
+        team = prompter.get("alliance");
         delay = prompter.get("delay");
 
 
-        //telemetry.addData("Selected Alliance", team);
+        telemetry.addData("Selected Alliance", team);
         telemetry.addData("Selected Delay", delay);
         telemetry.update();
     }
@@ -146,9 +152,16 @@ public class WallShoot extends LinearOpMode {
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = new Launcher(hardwareMap);
 
-        prompter.prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 30.0, 0.0, 1.0))
+        prompter.prompt("alliance", new OptionPrompt<>("Select Alliance", Team.RED, Team.BLUE))
+                .prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 15.0, 0.0, 1.0))
+                //.prompt(new MessagePrompt("MAKE SURE ALL SYSTEMS ARE READY"))
                 .showSummary()
                 .onComplete(this::onPromptsComplete);
+
+        while (!isStarted() && !isStopRequested()) {
+            prompter.run();
+            follower.update();
+        }
 
         waitForStart();
         schedule(autoRoutine(intake, launcher/*flywheelN, flywheelP, intake, releaseN, releaseP*/));
@@ -172,8 +185,10 @@ public class WallShoot extends LinearOpMode {
             RobotRenderer.drawRobot(follower);
             telemetry.update();
             OpModeStorage.autonomousEndPose = follower.pose();
+            OpModeStorage.isRedAlliance = team == Team.RED;
         }
         OpModeStorage.autonomousEndPose = follower.pose();
+        OpModeStorage.isRedAlliance = team == Team.RED;
     }
 
     public Path path1() {

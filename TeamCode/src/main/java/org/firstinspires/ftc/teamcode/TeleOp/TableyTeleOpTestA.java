@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.TeleOp;
 
-import android.util.Size;
 
 import com.pedropathing.api.Paths;
 import com.pedropathing.api.PoseFactory;
@@ -26,20 +25,23 @@ import com.skeletonarmy.marrow.telemetry.modifiers.EmptyModifier;
 import com.skeletonarmy.marrow.telemetry.modifiers.HtmlTextSize;
 import com.skeletonarmy.marrow.telemetry.modifiers.SizeModifier;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
 import org.firstinspires.ftc.teamcode.helper.ShooterConstants;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 @TeleOp(name = "Tabley TeleOp TestA")
 public class TableyTeleOpTestA extends LinearOpMode {
 
-    private int launchP = ShooterConstants.launchP;
-    private int launchN = ShooterConstants.launchN;
+//    private int launchP = ShooterConstants.launchP;
+//    private int launchN = ShooterConstants.launchN;
     private Launcher launcher;
     private Follower follower;
-    Pose waypoint = null;
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
@@ -47,6 +49,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
     private final Pose waypoint2 = poseFactory.of(61.9166, 131.2101, 90);
 
     // --- TELEOP SHOOT STATE MACHINE DEFINITION ---
+    /*
     private enum ShootState {
         IDLE,
         WAIT_FOR_FLY_STABLE,
@@ -58,11 +61,15 @@ public class TableyTeleOpTestA extends LinearOpMode {
     private final ElapsedTime shootTimer = new ElapsedTime();
     private final ElapsedTime stabilityTimer = new ElapsedTime();
 
+     */
+
     // Button edge detection variables
     private boolean lastRightBumper = false;
+    /*
     private boolean lastY = false;
     private boolean lastDpadDown = false;
     private boolean lastDpadUp = false;
+    */
 
     // --- HEADING LOCK & ALLIANCE / HIVE VARIABLES ---
     private boolean hiveIsRight = true;
@@ -70,9 +77,11 @@ public class TableyTeleOpTestA extends LinearOpMode {
     private double allianceOffset = 0.0;
     private double targetX;
     private double targetY;
+    private AprilTagProcessor aprilTagProcessor;
     private PIDController headingPID = new PIDController(1.2, 0.0, 0.0);
 
     private double offset = ShooterConstants.offset;
+    private boolean isRed;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -80,41 +89,35 @@ public class TableyTeleOpTestA extends LinearOpMode {
         launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        isRed = OpModeStorage.isRedAlliance;
 
-        //DcMotorEx flywheelN = hardwareMap.get(DcMotorEx.class, "flywheelN");
-       // DcMotorEx flywheelP = hardwareMap.get(DcMotorEx.class, "flywheelP");
-        //flywheelN.setDirection(DcMotorEx.Direction.REVERSE);
-
-        // Apply optimized high-acceleration PIDF constants to keep velocity pinned
-        //PIDFCoefficients fastCoefficients = new PIDFCoefficients(ShooterConstants.P, ShooterConstants.I, ShooterConstants.D, ShooterConstants.F);
-        //flywheelN.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
-        //flywheelP.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, fastCoefficients);
-
-        //Servo releaseN = hardwareMap.get(Servo.class, "releaseN");
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
 
-        //releaseN.setPosition(1.0); // 0 degrees
-        //releaseP.setPosition(1.0); // 0 degrees
+
         follower = Constants.create(hardwareMap);
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
+        /*if(useCamera) {
+            aprilTagProcessor = new AprilTagProcessor.Builder()
+                    .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
+                    .build();
+
+            VisionPortal visionPortal = new VisionPortal.Builder()
+                    .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")) // Make sure your webcam is named "Webcam 1" in your configuration
+                    .addProcessor(aprilTagProcessor)
+                    .build();
+        }
+
+         */
 
         waitForStart();
+        resetRuntime();
         launcher.spinUp();
         follower.setPose(OpModeStorage.autonomousEndPose);
 
-//        // Set alliance offset (0.0 for Red, Math.PI for Blue)
-//        allianceOffset = OpModeStorage.isRedAlliance ? 0.0 : Math.PI;
-
         follower.update();
-        /*
-        // SPIN UP BOTH FLYWHEELS IMMEDIATELY AT TELEOP START
-        flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelN.setVelocity(launchN);
-        flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        flywheelP.setVelocity(launchP);
-         */
+
 
         while (opModeIsActive()) {
             double speed = 1.0;
@@ -163,8 +166,9 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
 
             // --- APPLY AUTO-ALIGN HEADING LOCK (BACK-LEFT SHOOTER WITH DISTANCE COMPENSATION) ---
+
             if (isOriented) {
-                if (OpModeStorage.isRedAlliance) {
+                //if (OpModeStorage.isRedAlliance) {
                     if (hiveIsRight) {
                         targetX = 58;
                         targetY = 52;
@@ -172,7 +176,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                         targetX = 58;
                         targetY = 90;
                     }
-                } else {
+                /*} else {
                     if (hiveIsRight) {
                         targetX = 84;
                         targetY = 52;
@@ -181,6 +185,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                         targetY = 90;
                     }
                 }
+                 */
 
                 Pose robotPose = follower.pose();
                 double currentX = robotPose.x();
@@ -203,6 +208,71 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
                 powers = ManualDrive.headingLock(follower, headingPID, powers, arctanOrientation);
             }
+
+
+            /*if (isOriented) {
+                boolean isRed = OpModeStorage.isRedAlliance;
+
+                    org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection desiredCluster = null;
+
+                    // Scan visible detections for AprilTag Clusters (SDK 12.0+)
+                    for (org.firstinspires.ftc.vision.apriltag.AprilTagDetection detection : aprilTagProcessor.getDetections()) {
+                        if (detection instanceof org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection) {
+                            org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection clusterDet =
+                                    (org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection) detection;
+
+                            // Check if cluster matches our alliance and is right-side up (|roll| < 90)
+                            if (clusterDet.metadata != null &&
+                                    clusterDet.metadata.name.contains(isRed ? "RED" : "BLUE") &&
+                                    Math.abs(clusterDet.ftcPose.roll) < 90.0) {
+                                desiredCluster = clusterDet;
+                                break;
+                            }
+                        }
+                    }
+
+
+                double arctanOrientation;
+
+                if (desiredCluster != null && desiredCluster.ftcPose != null) {
+                    // --- OPTION A: VISUAL SERVOING (Hive Cluster in view) ---
+                    double tagRelativeAngle = Math.toRadians(desiredCluster.ftcPose.bearing);
+                    arctanOrientation = tagRelativeAngle + Math.PI + Math.atan2(offset, desiredCluster.ftcPose.range);
+                } else {
+                    // --- OPTION B: COORDINATE FALLBACK (Cluster not visible) ---
+                    if (isRed) {
+                        if (hiveIsRight) {
+                            targetX = 58;
+                            targetY = 52;
+                        } else {
+                            targetX = 58;
+                            targetY = 90;
+                        }
+                    } else {
+                        if (hiveIsRight) {
+                            targetX = 84;
+                            targetY = 52;
+                        } else {
+                            targetX = 84;
+                            targetY = 90;
+                        }
+                    }
+
+                    Pose robotPose = follower.pose();
+                    double currentX = robotPose.x();
+                    double currentY = robotPose.y();
+
+                    double distanceToTarget = Math.hypot(targetX - currentX, targetY - currentY);
+                    double baseAngle = Math.atan2(targetY - currentY, targetX - currentX);
+                    double dynamicOffset = Math.atan2(offset, distanceToTarget);
+
+                    arctanOrientation = baseAngle + Math.PI + dynamicOffset;
+                }
+
+                powers = ManualDrive.headingLock(follower, headingPID, powers, arctanOrientation);
+            }
+
+             */
 
             boolean driverMovingSticks = Math.abs(gamepad1.left_stick_x) > 0.1
                     || Math.abs(gamepad1.left_stick_y) > 0.1

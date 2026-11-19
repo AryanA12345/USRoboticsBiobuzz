@@ -41,7 +41,7 @@ public class PrompterAuto extends LinearOpMode {
 
     EnumMap<Team, Pose> map = new EnumMap<>(Team.class);
 
-    enum Team {
+    private enum Team {
         RED,
         BLUE
     }
@@ -326,11 +326,10 @@ public class PrompterAuto extends LinearOpMode {
             RobotRenderer.drawRobot(follower);
             telemetry.update();
             OpModeStorage.autonomousEndPose = follower.pose();
+            OpModeStorage.isRedAlliance = team == Team.RED;
         }
         OpModeStorage.autonomousEndPose = follower.pose();
-        /*if(team == Team.BLUE){
-            OpModeStorage.isRedAlliance = false;
-        }*/
+        OpModeStorage.isRedAlliance = team == Team.RED;
     }
 
     public Path path1() {
