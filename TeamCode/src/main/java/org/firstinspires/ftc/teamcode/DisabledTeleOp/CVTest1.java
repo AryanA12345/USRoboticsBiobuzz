@@ -25,14 +25,14 @@ public class CVTest1 extends LinearOpMode {
     private CVPathGenWeaver pather;
     private Follower follower;
     public static boolean isRed = true;
-    ArrayList<Pose> allBalls = new ArrayList<>();
+    public static ArrayList<Pose> allBalls = new ArrayList<>();
 
     @Override
     public void runOpMode() throws InterruptedException {
         follower = Constants.create(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         //intake.setDirection(DcMotorSimple.Direction.REVERSE);
-        follower.setPose(new Pose(35, 8.5, Math.toRadians(90)));
+        follower.setPose(new Pose(9.3,131.5, 0));
         follower.update();
 
 
@@ -62,7 +62,8 @@ public class CVTest1 extends LinearOpMode {
             }
             if (gamepad1.right_trigger_pressed) {
                 intake.setPower(1);
-            } else {
+            } else if (gamepad1.left_trigger_pressed) {
+                intake.setPower(-1);
                 intake.setPower(0);
             }
             if (follower.isBusy() && follower.atParametricEnd()) {

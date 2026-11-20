@@ -30,6 +30,11 @@ public class CVPathGenWeaver {
     public ArrayList<Pose> simBall = new ArrayList<>();
     public boolean simulation = false;
     public Pose simBotPose = new Pose(0,0,0);
+
+    PolygonZone bottomWall = new PolygonZone(new Point(-10, -10), new Point(154, -10), new Point(154, 0), new Point(-10, 0));
+    PolygonZone topWall    = new PolygonZone(new Point(-10, 144), new Point(154, 144), new Point(154, 154), new Point(-10, 154));
+    PolygonZone leftWall   = new PolygonZone(new Point(-10, 0), new Point(0, 0), new Point(0, 144), new Point(-10, 144));
+    PolygonZone rightWall  = new PolygonZone(new Point(144, 0), new Point(154, 0), new Point(154, 144), new Point(144, 144));
     private static Matrix cameraAdjustments(Pose robotPose) {
         double heading = robotPose.heading();
 
@@ -138,6 +143,10 @@ public class CVPathGenWeaver {
                 .start(new Point(follower.pose().x(), follower.pose().y(), follower.pose().heading()))
                 .addObstacle(isRed ? new PolygonZone(new Point(43, 48), new Point(43,91), new Point(52,91), new Point (52,48)) : new PolygonZone(new Point(90, 92), new Point(98,92), new Point(98,48), new Point (90,48)))
                 //.addObstacle(isRed ? new PolygonZone(new Point(43, 48), new Point(43,91), new Point(52,91), new Point (52,48)) : new PolygonZone(new Point(90, 92), new Point(98,92), new Point(98,48), new Point (90,48)))
+                .addObstacle(bottomWall)
+                .addObstacle(leftWall)
+                .addObstacle(rightWall)
+                .addObstacle(topWall)
                 .targets(ballPoses, e -> new Point(e.x(), e.y()))
                 .maxTargets(4)
                 .build();

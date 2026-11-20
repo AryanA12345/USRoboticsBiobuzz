@@ -8,6 +8,7 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.ManualDrive;
+import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -26,6 +27,8 @@ import com.skeletonarmy.marrow.telemetry.modifiers.HtmlTextSize;
 import com.skeletonarmy.marrow.telemetry.modifiers.SizeModifier;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.teamcode.CV.CVPathGenWeaver;
+import org.firstinspires.ftc.teamcode.DisabledTeleOp.CVTest1;
 import org.firstinspires.ftc.teamcode.helper.Launcher;
 import org.firstinspires.ftc.teamcode.helper.OpModeStorage;
 import org.firstinspires.ftc.teamcode.helper.RobotRenderer;
@@ -65,6 +68,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
     // Button edge detection variables
     private boolean lastRightBumper = false;
+    private CVPathGenWeaver pather;
     /*
     private boolean lastY = false;
     private boolean lastDpadDown = false;
@@ -98,6 +102,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
 
         follower.setPose(OpModeStorage.autonomousEndPose);
         follower.update();
+        pather = new CVPathGenWeaver(hardwareMap, follower, isRed, telemetry);
         /*if(useCamera) {
             aprilTagProcessor = new AprilTagProcessor.Builder()
                     .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
@@ -157,6 +162,12 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 } else {
                     follower.follow(Paths.line(follower.pose(), waypoint1).linear(follower.pose(), waypoint1));
                 }
+            if(gamepad1.bWasPressed()){
+                Path path = pather.pathGen();
+                if (path != null) {
+                    follower.follow(path/*.with(Constants.foresightConfig.maxPathSpeed.at(0.8))*/);
+                }
+            }
             }
             if(follower.pose().y()>70) {
                 hiveIsRight = false;
@@ -351,6 +362,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 follower.setPose(poseFactory.of(9.3,131.5, 0));
             }
 
+
             // --- MANUAL MECHANISM CONTROLS ---
             if(launcher.getCurrentState() != Launcher.ShootState.RUN_RELEASE) {
                 releaseP.setPosition((gamepad1.left_bumper) ? 0.0 : 1.0);
@@ -369,6 +381,9 @@ public class TableyTeleOpTestA extends LinearOpMode {
              */
 
             // Diagnostic Telemetry Monitoring
+            for (Pose ball : CVTest1.allBalls) {
+                telemetry.addLine("(" + ball.x() + ", " + ball.y() + ")");
+            }
             telemetry.addData("Shoot State", String.valueOf(launcher.getCurrentState()),new BoldModifier());
             //telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
             telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
