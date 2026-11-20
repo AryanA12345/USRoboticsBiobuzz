@@ -5,6 +5,8 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
 import org.firstinspires.ftc.teamcode.CV.CVPathGen;
 import org.firstinspires.ftc.teamcode.pedro.Constants;
@@ -12,7 +14,7 @@ import org.firstinspires.ftc.teamcode.pedro.Constants;
 import java.util.ArrayList;
 
 
-@Disabled
+//@Disabled
 @TeleOp
 public class CVTest extends LinearOpMode {
     private CVPathGen pather;
@@ -23,6 +25,8 @@ public class CVTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         follower = Constants.create(hardwareMap);
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        //intake.setDirection(DcMotorSimple.Direction.REVERSE);
         follower.setPose(new Pose(35,8.5,Math.toRadians(90)));
         follower.update();
         pather = new CVPathGen(hardwareMap,follower, isRed, telemetry);
@@ -36,6 +40,11 @@ public class CVTest extends LinearOpMode {
                 if(path != null){
                     follower.follow(path);
                 }
+            }
+            if(gamepad1.right_trigger_pressed){
+                intake.setPower(1);
+            } else {
+                intake.setPower(0);
             }
             if(follower.isBusy() && follower.atParametricEnd()){
                 follower.stop();
