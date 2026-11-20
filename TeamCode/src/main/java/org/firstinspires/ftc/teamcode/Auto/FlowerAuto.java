@@ -59,8 +59,13 @@ public class FlowerAuto extends LinearOpMode {
     private final Pose point5Control2 = poseFactory.of(51.5925, 106.0281, 0);
     private final Pose point5Control3 = poseFactory.of(47.2902, 119.6069, 0);
     private final Pose point5Segment2Target = poseFactory.of(61, 88, 0);
+    /*
     private final Pose point6 = poseFactory.of(49.2393, 129.7829, 107.8078);
     private final Pose point6Control1 = poseFactory.of(54.7469, 104.043, 0);
+    private final Pose point6Segment1Target = poseFactory.of(62.5, 88.5, 0);
+    */
+    private final Pose point6 = poseFactory.of(17.0921, 117.658, 147.2941);
+    private final Pose point6Control1 = poseFactory.of(39.235, 110.1131, 0);
     private final Pose point6Segment1Target = poseFactory.of(62.5, 88.5, 0);
     private final Pose point7 = poseFactory.of(10.2468, 47.4569, 180);
     private final Pose point7Control1 = poseFactory.of(15.3277, 99.041, 0);
@@ -134,8 +139,8 @@ public class FlowerAuto extends LinearOpMode {
 
                 //instant(() -> flowerIntake.setPosition(1.0)),
 
-                follow(follower, path6()),
-                timedIntake,
+                follow(follower, path6())//,
+                /*timedIntake,
                 launcher.getShootCommand(),
 
                 follow(follower, path7()),
@@ -148,6 +153,8 @@ public class FlowerAuto extends LinearOpMode {
                         //instant(() -> flowerIntake.setPosition(0.0))
                 ),
                 launcher.getShootCommand()
+
+                 */
         );
     }
 
@@ -166,6 +173,11 @@ public class FlowerAuto extends LinearOpMode {
         prompter.prompt("delay", new ValuePrompt<>("Start Delay", Double.class, 0.0, 30.0, 0.0, 1.0))
                 .showSummary()
                 .onComplete(this::onPromptsComplete);
+
+        while (!isStarted() && !isStopRequested()) {
+            prompter.run();
+            follower.update();
+        }
 
         waitForStart();
         schedule(autoRoutine(intake, /*flowerIntake,*/ launcher));
@@ -209,6 +221,10 @@ public class FlowerAuto extends LinearOpMode {
         return Paths.curve(point4, point5Control1, point5Control2, point5Control3, point5).heading(Interpolator.piecewise().until(0.7151, Interpolator.tangent).until(1, Interpolator.facingPoint(point5Segment2Target).reverse()));
     }
 
+    /*public Path path6() {
+        return Paths.curve(point5, point6Control1, point6).heading(Interpolator.piecewise().until(1, Interpolator.facingPoint(point6Segment1Target).reverse()));
+    }
+     */
     public Path path6() {
         return Paths.curve(point5, point6Control1, point6).heading(Interpolator.piecewise().until(1, Interpolator.facingPoint(point6Segment1Target).reverse()));
     }
