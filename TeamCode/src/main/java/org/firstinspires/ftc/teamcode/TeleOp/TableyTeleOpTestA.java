@@ -121,7 +121,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
         waitForStart();
         resetRuntime();
         launcher.spinUp();
-        follower.setPose(OpModeStorage.autonomousEndPose);
+        //follower.setPose(OpModeStorage.autonomousEndPose);
 
         follower.update();
 
@@ -291,8 +291,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
             boolean driverMovingSticks = Math.abs(gamepad1.left_stick_x) > 0.1
                     || Math.abs(gamepad1.left_stick_y) > 0.1
                     || Math.abs(gamepad1.right_stick_x) > 0.1;
-            boolean rightStickMoving = Math.abs(gamepad1.right_stick_x) > 0.1;
-            if(rightStickMoving){isOriented = false;}
+
             if (!follower.isBusy() || driverMovingSticks) {
                 ManualDrive.driveOrHold(follower, powers);
             }

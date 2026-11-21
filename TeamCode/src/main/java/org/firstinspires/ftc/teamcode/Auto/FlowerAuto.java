@@ -110,19 +110,20 @@ public class FlowerAuto extends LinearOpMode {
     public Command autoRoutine(DcMotor intake, /*Servo flowerIntake,*/ Launcher launcher) {
         Command timedIntake = sequential(
                 instant(() -> intake.setPower(1.0)),
-                waitMs(2000),
-                instant(() -> intake.setPower(0.0))
+                waitMs(2000)//,
+                //instant(() -> intake.setPower(0.0))
         );
 
         Command waitTimedIntake = sequential(
                 waitMs(2500),
                 instant(() -> intake.setPower(1.0)),
-                waitMs(2000),
-                instant(() -> intake.setPower(0.0))
+                waitMs(2000)//,
+                //instant(() -> intake.setPower(0.0))
         );
 
         return sequential(
                 instant(launcher::spinUp),
+                instant(()->intake.setPower(1.0)),
                 follow(follower, path1()),
                 launcher.getShootCommand(),
 
@@ -139,7 +140,8 @@ public class FlowerAuto extends LinearOpMode {
 
                 //instant(() -> flowerIntake.setPosition(1.0)),
 
-                follow(follower, path6())//,
+                follow(follower, path6()),//,
+                instant(()->intake.setPower(0.0))
                 /*timedIntake,
                 launcher.getShootCommand(),
 
@@ -165,7 +167,7 @@ public class FlowerAuto extends LinearOpMode {
         follower.setPose(originalPos);
         follower.update();
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        //intake.setDirection(DcMotorSimple.Direction.REVERSE);
         //Servo flowerIntake = hardwareMap.get(Servo.class, "flowerIntake");
         launcher = new Launcher(hardwareMap);
         prompter = new Prompter(this);
@@ -183,6 +185,7 @@ public class FlowerAuto extends LinearOpMode {
         schedule(autoRoutine(intake, /*flowerIntake,*/ launcher));
 
         while (opModeIsActive()) {
+            OpModeStorage.autonomousEndPose = follower.pose();
             follower.update();
             Scheduler.execute();
 
@@ -198,7 +201,7 @@ public class FlowerAuto extends LinearOpMode {
             telemetry.update();
             OpModeStorage.autonomousEndPose = follower.pose();
         }
-        OpModeStorage.autonomousEndPose = follower.pose();
+        //OpModeStorage.autonomousEndPose = follower.pose();
     }
 
     public Path path1() {
