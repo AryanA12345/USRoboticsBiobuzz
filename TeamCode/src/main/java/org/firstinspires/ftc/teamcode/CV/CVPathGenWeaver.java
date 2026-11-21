@@ -54,7 +54,7 @@ public class CVPathGenWeaver {
         ll.pipelineSwitch(4); // change to your pipeline
 
         Weaver.setConfig(new PathConfig()
-                .intakeWidth(12.0)
+                .intakeWidth(10.0)
                 .robotWidth(16.0)
                 .robotHeight(18.0)
                 .clearance(2.0)
@@ -122,8 +122,8 @@ public class CVPathGenWeaver {
         Pose po = simulation ? simBotPose : follower.pose();
         balls.removeIf(ball ->
                 ball.x() < 6 || ball.x() > 138 ||
-                        ball.y() < 6 || ball.y() > 138 ||
-                        (isRed ? ball.x() > 70 : ball.x() < 70)
+                        ball.y() < 6 || ball.y() > 138 /*||
+                        (isRed ? ball.x() > 70 : ball.x() < 70)*/
         );
         //ArrayList<Pose> best = new ArrayList<>();
         //best.addAll(algo.costFunc(balls, po));

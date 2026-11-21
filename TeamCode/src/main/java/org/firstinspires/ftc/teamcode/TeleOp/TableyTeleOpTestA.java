@@ -92,7 +92,9 @@ public class TableyTeleOpTestA extends LinearOpMode {
         telemetry = new MarrowTelemetry(telemetry);
         launcher = new Launcher(hardwareMap);
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-        intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        Servo flowerArm0 = hardwareMap.get(Servo.class, "flowerArm0");
+        Servo flowerArm1 = hardwareMap.get(Servo.class, "flowerArm1");
+        //intake.setDirection(DcMotorSimple.Direction.REVERSE);
         isRed = OpModeStorage.isRedAlliance;
 
         Servo releaseP = hardwareMap.get(Servo.class, "releaseP");
@@ -162,13 +164,14 @@ public class TableyTeleOpTestA extends LinearOpMode {
                 } else {
                     follower.follow(Paths.line(follower.pose(), waypoint1).linear(follower.pose(), waypoint1));
                 }
-            if(gamepad1.bWasPressed()){
+            }
+            /*if(gamepad1.bWasPressed()){
                 Path path = pather.pathGen();
                 if (path != null) {
-                    follower.follow(path/*.with(Constants.foresightConfig.maxPathSpeed.at(0.8))*/);
+                    follower.follow(path);
                 }
             }
-            }
+            */
             if(follower.pose().y()>70) {
                 hiveIsRight = false;
             } else {
@@ -288,7 +291,8 @@ public class TableyTeleOpTestA extends LinearOpMode {
             boolean driverMovingSticks = Math.abs(gamepad1.left_stick_x) > 0.1
                     || Math.abs(gamepad1.left_stick_y) > 0.1
                     || Math.abs(gamepad1.right_stick_x) > 0.1;
-
+            boolean rightStickMoving = Math.abs(gamepad1.right_stick_x) > 0.1;
+            if(rightStickMoving){isOriented = false;}
             if (!follower.isBusy() || driverMovingSticks) {
                 ManualDrive.driveOrHold(follower, powers);
             }
@@ -361,6 +365,14 @@ public class TableyTeleOpTestA extends LinearOpMode {
             if(gamepad1.a){
                 follower.setPose(poseFactory.of(9.3,131.5, 0));
             }
+            if(gamepad1.dpad_left){
+                flowerArm0.setPosition(0.0);
+                flowerArm1.setPosition(1.0);
+            }
+            if(gamepad1.dpad_right){
+                flowerArm0.setPosition(1.0);
+                flowerArm1.setPosition(0.0);
+            }
 
 
             // --- MANUAL MECHANISM CONTROLS ---
@@ -381,9 +393,11 @@ public class TableyTeleOpTestA extends LinearOpMode {
              */
 
             // Diagnostic Telemetry Monitoring
+            /*
             for (Pose ball : CVTest1.allBalls) {
                 telemetry.addLine("(" + ball.x() + ", " + ball.y() + ")");
             }
+            */
             telemetry.addData("Shoot State", String.valueOf(launcher.getCurrentState()),new BoldModifier());
             //telemetry.addData("Flywheel N Velocity", launcher.getFlywheelNVelocity());
             telemetry.addData("Flywheel P Velocity", launcher.getFlywheelPVelocity());
