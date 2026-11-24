@@ -5,6 +5,7 @@
 package org.firstinspires.ftc.teamcode.helper;
 //Make sure this matches your file location
 
+import com.pedropathing.api.PoseFactory;
 import com.pedropathing.math.Pose;
 
 /**
@@ -12,7 +13,8 @@ import com.pedropathing.math.Pose;
  * Default value is {@code Pose(0,0,0);}
  */
 public class OpModeStorage {
-    public static Pose autonomousEndPose = new Pose(0, 0, 0);
+    private static final PoseFactory poseFactory = PoseFactory.degrees();
+    public static Pose autonomousEndPose = poseFactory.of(0, 0, 90);
 
     public static boolean isRedAlliance = true;
 

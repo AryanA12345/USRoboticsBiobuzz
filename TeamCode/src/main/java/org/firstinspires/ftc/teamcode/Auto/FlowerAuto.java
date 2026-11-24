@@ -191,7 +191,7 @@ public class FlowerAuto extends LinearOpMode {
 
             telemetry.addData("x", follower.pose().x());
             telemetry.addData("y", follower.pose().y());
-            telemetry.addData("heading", follower.pose().heading());
+            telemetry.addData("heading", Math.toDegrees(follower.pose().heading()));
 
             if (follower.currentPath() != null) {
                 telemetry.addData("Current path distance remaining", follower.distanceToEndpoint());
@@ -199,7 +199,7 @@ public class FlowerAuto extends LinearOpMode {
             }
 
             telemetry.update();
-            OpModeStorage.autonomousEndPose = follower.pose();
+            //OpModeStorage.autonomousEndPose = follower.pose();
         }
         //OpModeStorage.autonomousEndPose = follower.pose();
     }

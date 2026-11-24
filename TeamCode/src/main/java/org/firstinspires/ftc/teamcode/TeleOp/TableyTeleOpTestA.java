@@ -103,8 +103,8 @@ public class TableyTeleOpTestA extends LinearOpMode {
         follower = Constants.create(hardwareMap);
 
         follower.setPose(OpModeStorage.autonomousEndPose);
-        follower.update();
-        pather = new CVPathGenWeaver(hardwareMap, follower, isRed, telemetry);
+        //follower.update();
+        //pather = new CVPathGenWeaver(hardwareMap, follower, isRed, telemetry);
         /*if(useCamera) {
             aprilTagProcessor = new AprilTagProcessor.Builder()
                     .setTagLibrary(AprilTagGameDatabase.getCurrentGameTagLibrary())
@@ -121,7 +121,7 @@ public class TableyTeleOpTestA extends LinearOpMode {
         waitForStart();
         resetRuntime();
         launcher.spinUp();
-        //follower.setPose(OpModeStorage.autonomousEndPose);
+        follower.setPose(OpModeStorage.autonomousEndPose);
 
         follower.update();
 
