@@ -71,6 +71,25 @@ public class Launcher {
         flywheelP.setVelocity(ShooterConstants.launchP);
     }
 
+    // --- CUSTOM VELOCITY SPIN-UP FOR DISTANCE SHOOTING ---
+    public void spinUpCustomVelocity(double targetVelocityP) {
+        if (flywheelN.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+            flywheelN.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+        if (flywheelP.getMode() != DcMotor.RunMode.RUN_USING_ENCODER) {
+            flywheelP.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
+        // Maintain the proportion between N and P based on your default constants,
+        // or apply the target directly if they use the same target value.
+        // (Assuming ratio is roughly 1.0 or based on ShooterConstants ratio)
+        double ratio = (double) ShooterConstants.launchN / (double) ShooterConstants.launchP;
+        double targetVelocityN = targetVelocityP * ratio;
+
+        flywheelN.setVelocity(targetVelocityN);
+        flywheelP.setVelocity(targetVelocityP);
+    }
+
     // ==========================================
     // --- 1. TELEOP UPDATE METHOD (LOOP-BASED) ---
     // ==========================================
